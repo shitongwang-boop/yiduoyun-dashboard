@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>钢贸ERP上线决策驾驶舱</title>
+  <style>
+    :root {
+      --primary: #2B66FF;
+      --primary-hover: #1B52E5;
+      --primary-active: #1142C7;
+      --primary-bg: #F1F4FF;
+      --primary-border: #A2CBFF;
+      --link: #2B66FF;
+      --success: #1BA77D;
+      --success-bg: #EDF8F1;
+      --success-border: #77CB71;
+      --info: #4D82FF;
+      --info-bg: #F1F4FF;
+      --info-border: #A2CBFF;
+      --danger: #F2242E;
+      --danger-bg: #FEF4F4;
+      --danger-border: #FCDEDE;
+      --warn: #FF9305;
+      --warn-text: #E07204;
+      --warn-bg: #FFFBEB;
+      --warn-border: #F69A4E;
+      --important-bg: #FFFAE0;
+      --text-1: #11131A;
+      --text-2: #3A3F4D;
+      --text-3: #6C7280;
+      --text-4: #A8AFBF;
+      --border-strong: #D5DAE5;
+      --border: #E6EAF2;
+      --bg-disabled-fill: #F2F4FA;
+      --bg-page: #FBFAFD;
+      --bg-row-readonly: #EAF1F2;
+      --bg-surface: #FFFFFF;
+      --bg-table-header: #F2F4FA;
+      --bg-row-hover: #F2F4FA;
+      --bg-row-selected: #E4EDFF;
+      --radius-sm: 2px;
+      --radius: 4px;
+      --radius-lg: 6px;
+      --shadow-sm: 0 1px 2px rgba(17, 19, 26, 0.04);
+      --shadow: 0 2px 8px rgba(17, 19, 26, 0.06);
+      --shadow-lg: 0 4px 16px rgba(17, 19, 26, 0.08);
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 12px;
+      --space-lg: 16px;
+      --space-xl: 24px;
+      --space-2xl: 32px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg-page);
+      color: var(--text-1);
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont,
+        "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB",
+        "Microsoft YaHei", STHeiti, SimSun, sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+    button { letter-spacing: 0; }
+
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .app-header {
+      min-height: 56px;
+      padding: 8px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .brand-block,
+    .header-actions,
+    .project-meta,
+    .decision-title,
+    .decision-actions,
+    .section-title-wrap,
+    .legend,
+    .filter-group,
+    .footer-note {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand-block { gap: 10px; min-width: 0; }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      color: #FFFFFF;
+      background: var(--primary);
+      flex: 0 0 auto;
+    }
+
+    .brand-mark svg { width: 18px; height: 18px; }
+
+    .brand-name {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 20px;
+      white-space: nowrap;
+    }
+
+    .brand-subtitle {
+      color: var(--text-3);
+      line-height: 18px;
+      white-space: nowrap;
+    }
+
+    .project-meta { gap: 8px; color: var(--text-3); }
+    .project-meta strong { color: var(--text-2); font-weight: 700; }
+    .header-actions { gap: 8px; flex: 0 0 auto; }
+
+    .btn {
+      height: 28px;
+      padding: 0 14px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-2);
+      border-radius: var(--radius);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .btn svg { width: 14px; height: 14px; }
+    .btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+    .btn-primary { background: var(--primary); color: #FFFFFF; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-hover); color: #FFFFFF; border-color: var(--primary-hover); }
+    .btn-link { height: auto; padding: 0; border: 0; color: var(--primary); background: transparent; }
+    .btn-link:hover { background: transparent; color: var(--primary-hover); }
+
+    .page {
+      width: min(1560px, 100%);
+      margin: 0 auto;
+      padding: 12px 16px 32px;
+    }
+
+    .decision-banner {
+      padding: 18px 20px;
+      border: 1px solid var(--warn-border);
+      border-left: 4px solid var(--warn);
+      border-radius: var(--radius);
+      background: var(--warn-bg);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .decision-title { gap: 10px; flex-wrap: wrap; }
+
+    .decision-title h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 30px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .decision-copy {
+      margin-top: 6px;
+      max-width: 980px;
+      color: var(--text-2);
+      font-size: 13px;
+      line-height: 20px;
+    }
+
+    .decision-copy strong { color: var(--text-1); font-weight: 700; }
+    .decision-actions { gap: 18px; }
+
+    .decision-score {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      position: relative;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--warn) calc(var(--score) * 1%), var(--border) 0);
+      flex: 0 0 auto;
+    }
+
+    .decision-score::after {
+      content: '';
+      position: absolute;
+      inset: 7px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+    }
+
+    .score-inner { position: relative; z-index: 1; text-align: center; }
+    .score-value { font-size: 20px; line-height: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .score-label { color: var(--text-3); line-height: 16px; }
+
+    .tag {
+      min-height: 20px;
+      padding: 1px 7px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+
+    .tag svg { width: 12px; height: 12px; }
+    .tag-success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+    .tag-info { background: var(--info-bg); color: var(--info); border: 1px solid var(--info-border); }
+    .tag-warn { background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+    .tag-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+    .tag-neutral { background: var(--bg-table-header); color: var(--text-3); border: 1px solid var(--border-strong); }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .kpi-item {
+      min-height: 108px;
+      padding: 14px 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 38px;
+      gap: 8px;
+      align-items: start;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .kpi-item:hover { border-color: var(--primary-border); box-shadow: var(--shadow); }
+    .kpi-label { color: var(--text-3); line-height: 18px; }
+    .kpi-value { margin-top: 5px; font-size: 20px; line-height: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .kpi-sub { margin-top: 3px; color: var(--text-3); line-height: 18px; }
+    .kpi-sub strong { color: var(--text-2); font-weight: 700; }
+
+    .kpi-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      background: var(--primary-bg);
+      color: var(--primary);
+    }
+
+    .kpi-icon.success { background: var(--success-bg); color: var(--success); }
+    .kpi-icon.warn { background: var(--warn-bg); color: var(--warn-text); }
+    .kpi-icon.danger { background: var(--danger-bg); color: var(--danger); }
+    .kpi-icon svg { width: 18px; height: 18px; }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      min-height: 44px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-title-wrap { gap: 8px; min-width: 0; }
+    .card-title { display: flex; align-items: center; font-size: 14px; font-weight: 700; color: var(--text-1); white-space: nowrap; }
+    .card-title::before { content: ''; width: 3px; height: 14px; margin-right: 8px; border-radius: 2px; background: var(--primary); }
+    .section-subtitle { color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-body { padding: 14px 16px; }
+
+    .legend { gap: 12px; color: var(--text-3); flex-wrap: wrap; justify-content: flex-end; }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .legend-dot.ready { background: var(--success); }
+    .legend-dot.conditional { background: var(--warn); }
+    .legend-dot.blocked { background: var(--danger); }
+    .legend-dot.unverified { background: var(--text-4); }
+
+    .flow-scroll { overflow-x: auto; padding: 2px 1px 8px; }
+
+    .flow-track {
+      min-width: 1180px;
+      display: grid;
+      grid-template-columns: repeat(8, minmax(130px, 1fr));
+      align-items: stretch;
+      position: relative;
+    }
+
+    .flow-track::before {
+      content: '';
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      top: 34px;
+      height: 2px;
+      background: var(--border-strong);
+      z-index: 0;
+    }
+
+    .stage-wrap { position: relative; padding: 0 5px; z-index: 1; }
+
+    .stage-wrap:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-top: 2px solid var(--border-strong);
+      border-right: 2px solid var(--border-strong);
+      transform: rotate(45deg);
+      top: 31px;
+      right: -1px;
+      background: var(--bg-surface);
+    }
+
+    .stage-card {
+      width: 100%;
+      min-height: 184px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--text-4);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      color: var(--text-1);
+      text-align: left;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .stage-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .stage-card.ready { border-top-color: var(--success); }
+    .stage-card.conditional { border-top-color: var(--warn); }
+    .stage-card.blocked { border-top-color: var(--danger); }
+    .stage-card.unverified { border-top-color: var(--text-4); }
+    .stage-card.selected { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+    .stage-card.dimmed { opacity: 0.35; }
+
+    .stage-head {
+      height: 66px;
+      padding: 10px 10px 8px;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stage-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      background: var(--bg-table-header);
+      color: var(--text-2);
+    }
+
+    .stage-icon svg { width: 16px; height: 16px; }
+    .stage-card.ready .stage-icon { color: var(--success); background: var(--success-bg); }
+    .stage-card.conditional .stage-icon { color: var(--warn-text); background: var(--warn-bg); }
+    .stage-card.blocked .stage-icon { color: var(--danger); background: var(--danger-bg); }
+    .stage-order { color: var(--text-4); line-height: 16px; }
+    .stage-name { font-size: 13px; line-height: 20px; font-weight: 700; overflow-wrap: anywhere; }
+    .stage-body { padding: 10px; }
+    .stage-metric { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; }
+    .stage-percent { font-size: 20px; line-height: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .stage-count { color: var(--text-3); white-space: nowrap; }
+    .progress { height: 5px; margin: 5px 0 9px; border-radius: 3px; background: var(--bg-table-header); overflow: hidden; }
+    .progress-bar { height: 100%; background: var(--text-4); }
+    .stage-card.ready .progress-bar { background: var(--success); }
+    .stage-card.conditional .progress-bar { background: var(--warn); }
+    .stage-card.blocked .progress-bar { background: var(--danger); }
+    .stage-footer { min-height: 22px; display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+    .issue-count { color: var(--text-3); white-space: nowrap; }
+    .issue-count strong { color: var(--danger); font-weight: 700; }
+
+    .flow-tip {
+      margin-top: 4px;
+      padding: 8px 10px;
+      color: var(--text-3);
+      background: var(--bg-table-header);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .flow-tip svg { width: 14px; height: 14px; color: var(--primary); flex: 0 0 auto; }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(340px, 0.75fr);
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .content-grid > .card { margin-bottom: 0; }
+    .filter-group { gap: 4px; flex-wrap: wrap; }
+
+    .filter-btn {
+      height: 24px;
+      padding: 0 9px;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text-3);
+      cursor: pointer;
+    }
+
+    .filter-btn:hover { color: var(--primary); background: var(--primary-bg); }
+    .filter-btn.active { color: var(--primary); background: var(--primary-bg); border-color: var(--primary-border); font-weight: 700; }
+
+    .table-wrap { overflow-x: auto; }
+
+    table.detail {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    table.detail th,
+    table.detail td {
+      border-bottom: 1px solid var(--border);
+      height: 36px;
+      padding: 6px 10px;
+      vertical-align: middle;
+    }
+
+    table.detail th {
+      height: 36px;
+      background: var(--bg-table-header);
+      color: var(--text-2);
+      font-weight: 700;
+      text-align: left;
+    }
+
+    table.detail tbody tr { cursor: pointer; }
+    table.detail tbody tr:hover td { background: var(--bg-row-hover); }
+    table.detail tbody tr.selected td { background: var(--bg-row-selected); }
+    table.detail td { color: var(--text-1); }
+    table.detail .num { text-align: right; font-variant-numeric: tabular-nums; }
+    table.detail .center { text-align: center; }
+    .cell-main { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .cell-sub { display: block; margin-top: 1px; color: var(--text-3); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .table-empty { height: 114px !important; text-align: center; color: var(--text-3) !important; }
+
+    .decision-panel { height: 100%; display: flex; flex-direction: column; }
+    .decision-panel .card-body { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+    .recommendation-block {
+      padding: 12px;
+      border: 1px solid var(--warn-border);
+      border-radius: var(--radius);
+      background: var(--important-bg);
+    }
+
+    .recommendation-label { color: var(--warn-text); font-weight: 700; }
+    .recommendation-title { margin-top: 4px; font-size: 14px; line-height: 21px; font-weight: 700; }
+    .recommendation-text { margin-top: 5px; color: var(--text-2); line-height: 20px; }
+
+    .gate-list { display: grid; gap: 7px; }
+
+    .gate-item {
+      min-height: 46px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .gate-icon { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; }
+    .gate-icon svg { width: 13px; height: 13px; }
+    .gate-icon.pass { color: var(--success); background: var(--success-bg); }
+    .gate-icon.fail { color: var(--danger); background: var(--danger-bg); }
+    .gate-name { color: var(--text-2); }
+    .gate-rule { color: var(--text-3); }
+    .gate-current { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .gate-current.pass { color: var(--success); }
+    .gate-current.fail { color: var(--danger); }
+
+    .phase-plan { border-top: 1px solid var(--border); padding-top: 12px; }
+    .phase-title { font-weight: 700; margin-bottom: 8px; }
+    .phase-row { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; position: relative; }
+    .phase-row + .phase-row { margin-top: 8px; }
+    .phase-label { height: 24px; padding: 2px 6px; border-radius: var(--radius-sm); text-align: center; background: var(--primary-bg); color: var(--primary); border: 1px solid var(--primary-border); }
+    .phase-content { color: var(--text-2); line-height: 20px; }
+
+    .footer-note {
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 8px;
+      padding: 8px 2px 0;
+      color: var(--text-3);
+      flex-wrap: wrap;
+    }
+
+    .footer-note strong { color: var(--text-2); font-weight: 700; }
+
+    .drawer-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 19, 26, 0.34);
+      z-index: 70;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.18s, visibility 0.18s;
+    }
+
+    .drawer-mask.show { opacity: 1; visibility: visible; }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(520px, 92vw);
+      height: 100vh;
+      background: var(--bg-surface);
+      z-index: 80;
+      box-shadow: var(--shadow-lg);
+      transform: translateX(100%);
+      transition: transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .drawer.show { transform: translateX(0); }
+
+    .drawer-header {
+      min-height: 58px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .drawer-title { font-size: 14px; font-weight: 700; }
+    .drawer-subtitle { color: var(--text-3); margin-top: 2px; }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      color: var(--text-2);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .icon-btn:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-bg); }
+    .icon-btn svg { width: 15px; height: 15px; }
+    .drawer-body { overflow-y: auto; padding: 14px 16px 24px; }
+
+    .drawer-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .drawer-kpi { padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); }
+    .drawer-kpi-label { color: var(--text-3); }
+    .drawer-kpi-value { margin-top: 3px; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .scenario-list { display: grid; gap: 6px; }
+
+    .scenario-item {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      color: var(--text-1);
+      font-family: inherit;
+      font-size: 12px;
+      text-align: left;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+      cursor: pointer;
+    }
+
+    .scenario-item:hover { background: var(--bg-row-hover); border-color: var(--primary-border); }
+    .scenario-name { font-weight: 700; }
+    .scenario-desc { margin-top: 3px; color: var(--text-3); line-height: 18px; }
+    .scenario-action { margin-top: 5px; color: var(--text-2); }
+    .scenario-action strong { color: var(--text-1); font-weight: 700; }
+
+    .scenario-side { min-width: 92px; display: grid; justify-items: end; gap: 8px; }
+    .scenario-side svg { width: 14px; height: 14px; color: var(--text-4); }
+
+    .scenario-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(64px, 1fr));
+      gap: 6px;
+      margin-top: 9px;
+    }
+
+    .scenario-metric {
+      min-height: 42px;
+      padding: 5px 7px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-table-header);
+    }
+
+    .scenario-metric-label { color: var(--text-3); line-height: 16px; }
+    .scenario-metric-value { margin-top: 1px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .scenario-metric-value.done { color: var(--success); }
+    .scenario-metric-value.rate { color: var(--primary); }
+
+    .source-data-banner {
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      border: 1px solid var(--info-border);
+      border-radius: var(--radius);
+      background: var(--info-bg);
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .source-data-banner strong { font-weight: 700; color: var(--text-1); }
+    .source-data-copy { min-width: 0; }
+    .source-data-copy span { color: var(--text-3); }
+
+    .issue-modal-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: rgba(17, 19, 26, 0.45);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.18s, visibility 0.18s;
+    }
+
+    .issue-modal-mask.show { opacity: 1; visibility: visible; }
+
+    .issue-modal {
+      width: min(620px, 100%);
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: var(--bg-surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .requirement-modal { width: min(980px, 100%); }
+    .requirement-modal .modal-body { padding: 12px 16px 16px; }
+
+    .requirement-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(100px, 160px));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .requirement-summary-item { padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); }
+    .requirement-summary-label { color: var(--text-3); }
+    .requirement-summary-value { margin-top: 2px; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .requirement-table-wrap { max-height: 56vh; overflow: auto; border: 1px solid var(--border); }
+    .requirement-table { min-width: 860px !important; }
+    .requirement-name { font-weight: 700; }
+    .requirement-desc { margin-top: 2px; color: var(--text-3); line-height: 18px; white-space: normal; }
+    .snapshot-note { margin-top: 8px; color: var(--text-3); }
+
+    .modal-header { min-height: 48px; padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .modal-title { font-size: 14px; font-weight: 700; }
+    .modal-body { padding: 16px; }
+    .detail-grid { display: grid; grid-template-columns: 112px minmax(0, 1fr); border: 1px solid var(--border); border-bottom: 0; }
+    .detail-label, .detail-value { min-height: 38px; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+    .detail-label { background: var(--bg-table-header); color: var(--text-3); }
+    .detail-value { color: var(--text-1); }
+    .modal-footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+    .toast-wrap { position: fixed; top: 72px; right: 24px; z-index: 120; display: grid; gap: 8px; }
+    .toast { min-width: 280px; max-width: 380px; padding: 10px 14px; border: 1px solid var(--info-border); border-left: 3px solid var(--info); border-radius: var(--radius); background: var(--bg-surface); color: var(--text-1); box-shadow: var(--shadow-lg); animation: toast-in 0.2s ease; }
+    .toast.success { border-color: var(--success-border); border-left-color: var(--success); }
+    .toast.warn { border-color: var(--warn-border); border-left-color: var(--warn); }
+    @keyframes toast-in { from { transform: translateY(-6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    @media (max-width: 1100px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .project-meta { display: none; }
+    }
+
+    @media (max-width: 820px) {
+      .app-header { padding: 8px 12px; }
+      .brand-subtitle, .btn-text.optional { display: none; }
+      .page { padding: 8px 8px 24px; }
+      .decision-banner { grid-template-columns: 1fr; padding: 14px; }
+      .decision-actions { justify-content: space-between; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .card-header { align-items: flex-start; flex-direction: column; }
+      .legend { justify-content: flex-start; }
+      .section-title-wrap { width: 100%; }
+    }
+
+    @media (max-width: 520px) {
+      .header-actions .btn:not(.btn-primary) { display: none; }
+      .brand-name { font-size: 13px; }
+      .decision-title h1 { font-size: 20px; }
+      .decision-actions { align-items: flex-start; }
+      .decision-score { width: 72px; height: 72px; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .kpi-item { min-height: 94px; }
+      .section-subtitle { display: none; }
+      .content-grid { grid-template-columns: minmax(0, 1fr); }
+      .drawer-summary { grid-template-columns: 1fr; }
+      .scenario-metrics { grid-template-columns: repeat(3, 1fr); }
+      .requirement-summary { grid-template-columns: repeat(3, 1fr); }
+      .detail-grid { grid-template-columns: 88px minmax(0, 1fr); }
+      .footer-note { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media print {
+      body { background: #FFFFFF; }
+      .app-header, .filter-group, .flow-tip, .btn, .drawer, .drawer-mask, .issue-modal-mask, .toast-wrap { display: none !important; }
+      .page { width: 100%; max-width: none; padding: 0; }
+      .decision-banner, .card, .kpi-item { break-inside: avoid; box-shadow: none; }
+      .flow-scroll, .table-wrap { overflow: visible; }
+      .flow-track { min-width: 0; }
+      table.detail { min-width: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand-block">
+      <div class="brand-mark" aria-hidden="true"><i data-lucide="chart-no-axes-combined"></i></div>
+      <div>
+        <div class="brand-name">胖猫云 · 实施决策台</div>
+        <div class="brand-subtitle">钢贸ERP上线评估</div>
+      </div>
+    </div>
+    <div class="project-meta">
+      <span>项目</span><strong>一朵云切换现货</strong>
+      <span>·</span>
+      <span>评估基准日 2026-07-15</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btnSource" title="打开企业微信需求管理表"><i data-lucide="external-link"></i><span class="btn-text optional">源需求表</span></button>
+      <button class="btn" id="btnRefresh" title="重新汇总页面数据"><i data-lucide="refresh-cw"></i><span class="btn-text optional">重新汇总</span></button>
+      <button class="btn btn-primary" id="btnExport"><i data-lucide="download"></i><span class="btn-text">导出决策简报</span></button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="decision-banner" aria-labelledby="decisionHeading">
+      <div>
+        <div class="decision-title">
+          <h1 id="decisionHeading">建议：有条件分阶段上线</h1>
+          <span class="tag tag-warn"><i data-lucide="triangle-alert"></i>待关闭 2 项阻断问题</span>
+        </div>
+        <div class="decision-copy">
+          <strong>领导决策摘要：</strong>贸易主流程及库存货权已具备上线条件；加工损耗结算与超信用额度出库控制仍存在风险。建议完成两项整改并复测后，先上线贸易业务，加工业务延后两周切换。
+        </div>
+      </div>
+      <div class="decision-actions">
+        <div>
+          <div class="tag tag-success"><i data-lucide="circle-check"></i>基础经营可运行</div>
+          <div style="height:6px"></div>
+          <div class="tag tag-danger"><i data-lucide="shield-alert"></i>风险门槛未全部通过</div>
+        </div>
+        <div class="decision-score" id="scoreRing" style="--score:84" aria-label="综合上线准备度84%">
+          <div class="score-inner"><div class="score-value" id="overallScore">84%</div><div class="score-label">准备度</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="kpi-grid" aria-label="上线关键指标">
+      <article class="kpi-item" tabindex="0" data-kpi-action="all" title="查看全部业务环节">
+        <div><div class="kpi-label">综合功能满足度</div><div class="kpi-value" id="kpiSatisfaction">84%</div><div class="kpi-sub">目标 <strong>≥ 90%</strong> · 较上周 +4%</div></div>
+        <div class="kpi-icon"><i data-lucide="gauge"></i></div>
+      </article>
+      <article class="kpi-item" tabindex="0" data-kpi-action="ready" title="突出可上线业务环节">
+        <div><div class="kpi-label">核心流程验证通过</div><div class="kpi-value">18 / 20</div><div class="kpi-sub">关键流程通过率 <strong>90%</strong></div></div>
+        <div class="kpi-icon success"><i data-lucide="route"></i></div>
+      </article>
+      <article class="kpi-item" tabindex="0" data-kpi-action="blocked" title="突出上线阻断业务环节">
+        <div><div class="kpi-label">上线阻断项</div><div class="kpi-value" id="kpiBlockers" style="color:var(--danger)">2 项</div><div class="kpi-sub">必须在生产切换前关闭</div></div>
+        <div class="kpi-icon danger"><i data-lucide="shield-x"></i></div>
+      </article>
+      <article class="kpi-item" tabindex="0" data-kpi-action="conditional" title="突出需带方案上线的业务环节">
+        <div><div class="kpi-label">上线后优化项</div><div class="kpi-value" style="color:var(--warn-text)">9 项</div><div class="kpi-sub">已有临时方案，不阻断经营</div></div>
+        <div class="kpi-icon warn"><i data-lucide="list-checks"></i></div>
+      </article>
+    </section>
+
+    <section class="card" id="businessMap">
+      <div class="card-header">
+        <div class="section-title-wrap">
+          <div class="card-title">全业务上线满足度地图</div>
+          <div class="section-subtitle">从基础资料到数据报表的端到端业务链路</div>
+        </div>
+        <div class="legend" aria-label="状态图例">
+          <span class="legend-item"><span class="legend-dot ready"></span>可上线</span>
+          <span class="legend-item"><span class="legend-dot conditional"></span>有条件上线</span>
+          <span class="legend-item"><span class="legend-dot blocked"></span>阻断</span>
+          <span class="legend-item"><span class="legend-dot unverified"></span>待验证</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="flow-scroll">
+          <div class="flow-track" id="flowTrack" aria-label="业务流程地图"></div>
+        </div>
+        <div class="flow-tip"><i data-lucide="mouse-pointer-click"></i>点击任一业务节点，可查看该业务域包含的场景、系统支持情况、替代方案和整改动作。</div>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <div class="card" id="issueSection">
+        <div class="card-header">
+          <div class="section-title-wrap">
+            <div class="card-title">待完善事项与上线影响</div>
+            <div class="section-subtitle" id="issueCountLabel">共 6 项重点问题</div>
+          </div>
+          <div class="filter-group" role="group" aria-label="问题筛选">
+            <button class="filter-btn active" data-issue-filter="all">全部</button>
+            <button class="filter-btn" data-issue-filter="blocker">上线阻断</button>
+            <button class="filter-btn" data-issue-filter="risk">带风险上线</button>
+            <button class="filter-btn" data-issue-filter="optimize">上线后优化</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="detail">
+            <thead>
+              <tr>
+                <th style="width:96px">等级</th>
+                <th>问题与业务影响</th>
+                <th style="width:110px">所属业务域</th>
+                <th style="width:108px">责任方</th>
+                <th style="width:108px">计划完成</th>
+                <th style="width:92px">状态</th>
+              </tr>
+            </thead>
+            <tbody id="issueTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <aside class="card decision-panel" aria-labelledby="gateHeading">
+        <div class="card-header"><div class="card-title" id="gateHeading">上线决策与门槛</div></div>
+        <div class="card-body">
+          <div class="recommendation-block">
+            <div class="recommendation-label">当前建议</div>
+            <div class="recommendation-title">两项阻断关闭后，按业务范围分阶段上线</div>
+            <div class="recommendation-text">不建议全部业务一次性切换。先保障贸易、库存、物流、财务主链稳定，再切换加工场景，可降低货权和成本核算风险。</div>
+          </div>
+          <div class="gate-list" id="gateList"></div>
+          <div class="phase-plan">
+            <div class="phase-title">建议上线节奏</div>
+            <div class="phase-row"><div class="phase-label">第一阶段</div><div class="phase-content"><strong>贸易业务上线：</strong>客商、销售、采购、库存、物流、结算、财务。</div></div>
+            <div class="phase-row"><div class="phase-label">第二阶段</div><div class="phase-content"><strong>加工业务上线：</strong>加工委托、损耗分摊、委外结算及成本核算。</div></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="footer-note">
+      <span><strong>评估口径：</strong>完全满足 100分；配置后满足 80分；人工辅助 50分；不支持 0分。</span>
+      <span id="dataVersionLabel">数据版本 V1.1</span>
+    </div>
+  </main>
+
+  <div class="drawer-mask" id="drawerMask"></div>
+  <aside class="drawer" id="domainDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+    <div class="drawer-header">
+      <div><div class="drawer-title" id="drawerTitle">业务域详情</div><div class="drawer-subtitle" id="drawerSubtitle"></div></div>
+      <button class="icon-btn" id="drawerClose" title="关闭"><i data-lucide="x"></i></button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <div class="issue-modal-mask" id="issueModalMask">
+    <div class="issue-modal" role="dialog" aria-modal="true" aria-labelledby="issueModalTitle">
+      <div class="modal-header"><div class="modal-title" id="issueModalTitle">问题详情</div><button class="icon-btn" id="issueModalClose" title="关闭"><i data-lucide="x"></i></button></div>
+      <div class="modal-body" id="issueModalBody"></div>
+      <div class="modal-footer"><button class="btn btn-primary" id="issueModalConfirm">知道了</button></div>
+    </div>
+  </div>
+
+  <div class="issue-modal-mask" id="requirementModalMask">
+    <div class="issue-modal requirement-modal" role="dialog" aria-modal="true" aria-labelledby="requirementModalTitle">
+      <div class="modal-header"><div><div class="modal-title" id="requirementModalTitle">需求明细</div><div class="drawer-subtitle" id="requirementModalSubtitle"></div></div><button class="icon-btn" id="requirementModalClose" title="关闭"><i data-lucide="x"></i></button></div>
+      <div class="modal-body" id="requirementModalBody"></div>
+      <div class="modal-footer"><button class="btn" id="requirementOpenSource"><i data-lucide="external-link"></i>打开源需求表</button><button class="btn btn-primary" id="requirementModalConfirm">知道了</button></div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script>
+    const STATUS_META = {
+      ready: { label: '可上线', tagClass: 'tag-success', icon: 'circle-check' },
+      conditional: { label: '有条件上线', tagClass: 'tag-warn', icon: 'circle-alert' },
+      blocked: { label: '阻断', tagClass: 'tag-danger', icon: 'circle-x' },
+      unverified: { label: '待验证', tagClass: 'tag-neutral', icon: 'circle-dashed' }
+    };
+
+    const ISSUE_META = {
+      blocker: { label: '上线阻断', tagClass: 'tag-danger' },
+      risk: { label: '带风险上线', tagClass: 'tag-warn' },
+      optimize: { label: '上线后优化', tagClass: 'tag-info' }
+    };
+
+    // REQUIREMENT_DATA_START
+    const REQUIREMENT_DATA = {"meta":{"sourceUrl":"https://doc.weixin.qq.com/smartsheet/s3_AVcAsgaPAFACNEgzdnZeQQMSTFCfs?scode=AKEADAcmAAsx9V5vacAVcAsgaPAFA&tab=db_FLYbRP","sourceFile":"一朵云项目需求管理表.xlsx","sourceSha256":"24a075f2e56d961da56b99a96d3536442f705cc3f236c8f072ffb3b7a2d7bbde","snapshotAt":"2026-07-10 20:19","generatedAt":"2026-07-15 17:27","completionRule":"当前状态为已上线、已有功能已支持、已完成或问题已解决"},"topics":{"找货下单":{"total":0,"done":0,"rate":0,"requirements":[]},"敏采流程线上化":{"total":3,"done":0,"rate":0,"requirements":[{"row":91,"id":"PMY071","name":"运营开单权限","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"胖曹(曹元珍)","department":"运营","batch":"0724批次","onlineDate":"-","scenario":"敏采订单用省区手机号，可以有找钢主体的开单权限"},{"row":169,"id":"PMY158","name":"敏采订单的申请订单提货完成","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"胖曹(曹元珍)","department":"运营","batch":"0724批次","onlineDate":"-","scenario":"敏采销售后原订单的完结入口"},{"row":173,"id":"PMY162","name":"运营敏采系统管理","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"胖曹(曹元珍)","department":"运营","batch":"0724批次","onlineDate":"-","scenario":"敏采订单单独从敏采系统建采购单、委托销售、库存查看、销售完毕后自动完结"}]},"转寄售流程线上化":{"total":3,"done":0,"rate":0,"requirements":[{"row":120,"id":"PMY105","name":"订单标签","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"胖曹(曹元珍)","department":"风控","batch":"0724批次","onlineDate":"-","scenario":"订单标签：转寄售订单功能与当前保持一致"},{"row":121,"id":"PMY106","name":"订单标签","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"胖曹(曹元珍)","department":"风控","batch":"0724批次","onlineDate":"-","scenario":"订单标签：联营控货转寄售功能与当前保持一致"},{"row":374,"id":"PMY371","name":"联营控货提单卡控","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"胖曹(曹元珍)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"联营控货寄售新单提单开具时要校验新单提货函的明细对应的原单有没有开提单，如果没有开具提单的话不允许新单开提单"}]},"订单标签":{"total":8,"done":0,"rate":0,"requirements":[{"row":93,"id":"PMY073","name":"订单标签缺失","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"言研(陈言)","department":"运营","batch":"0724批次","onlineDate":"-","scenario":"对应每笔订单需要保留交易锁货、运营敏采、运营放空、是否运营收口的标签"},{"row":118,"id":"PMY103","name":"订单标签","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"言研(陈言)","department":"风控","batch":"0724批次","onlineDate":"-","scenario":"订单标签：期货订单生成的合同默认为代理采购协议，运管办收口修改合同模板权限"},{"row":122,"id":"PMY108","name":"订单标签","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"言研(陈言)","department":"风控","batch":"0724批次","onlineDate":"-","scenario":"风控侧需要保留的订单标签见备注截图"},{"row":147,"id":"PMY135","name":"客户运营——开单标签、二级部门等功能","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"言研(陈言)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"①支持各类订单标签的打标，比如狐狸客户、指定交易；先票后款；期货等。（需补充标签） ②若客户有二级部门，开单时自动带出二级部门，合同归档后不支持修改 ③支持开单时搜索供应商二级部门——P0"},{"row":231,"id":"PMY224","name":"业务标签","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"言研(陈言)","department":"法务","batch":"0724批次","onlineDate":"-","scenario":"新增业务标签，根据业务标签对应版本的合同模板（工业品买卖合同/代理采购协议）"},{"row":301,"id":"PMY295","name":"开单时无订单标签","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"言研(陈言)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"不知道是啥类型订单业务，且无补单，售后状态。"},{"row":364,"id":"PMY361","name":"下单","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"言研(陈言)","department":"电商","batch":"0724批次","onlineDate":"-","scenario":"联营控货系统没有"},{"row":376,"id":"PMY373","name":"订单标签","status":"待BP分析","done":false,"priority":"P1（现货）","owner":"言研(陈言)","department":"人力","batch":"0724批次","onlineDate":"-","scenario":"用于不同提成规则核算的订单标签缺失：款到卸货、联营定轧、钢厂定轧、钢厂订货、终端客户、KA订货、运营敏采、运营敏采（系统）、运营放空、联营控货转寄售、联营控货、预售业务、招商项目"}]},"客商二级部门线上化":{"total":13,"done":0,"rate":0,"requirements":[{"row":103,"id":"PMY086","name":"供应商二级部门","status":"研发中","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"风控","batch":"0724批次","onlineDate":"-","scenario":"现货下单需要供应商二级部门"},{"row":589,"id":"PMY766","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"如果某个客户开启客户二级部门管理，开单时必须选择对应二级部门；如果仅存在一个部门，需要默认带出部门"},{"row":590,"id":"PMY767","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"客户可否下单需要支持针对客户相关属性配置：包括是否认证、认证版本、是否授权、授权版本、是否特批、是否包含禁止下单的标签(ex.黑名单)"},{"row":591,"id":"PMY768","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"发起赊销用款时需要校验当前联系人是否在当前企业下标记为“赊销联系人”"},{"row":592,"id":"PMY769","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"订单收款时，如果该客户开启二级部门管理，需要限制仅能选择对应部门的款项做收款"},{"row":593,"id":"PMY770","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"如果该客户开启二级部门管理，发票邮件推送需要按不同二级部门配置邮箱进行发送"},{"row":594,"id":"PMY771","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"如果某个订单存在供应商二级部门，支款需要按二级部门维度取对应银行账号支款"},{"row":595,"id":"PMY772","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"如果某个订单存在供应商二级部门，返利需要按二级部门维度取对应值"},{"row":596,"id":"PMY773","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"如果某个订单存在供应商二级部门，授信需要按二级部门维度配置的值做对应支款金额、时效调整"},{"row":597,"id":"PMY774","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"发单小助手希望能和TP一样发送的快点，至少在10分钟内，同时支持识别品线和联系人，供应商二级部门，仓库维度发送支款凭证，要支持发送图片和pdf。作废、无需发单等场景也需支持"},{"row":598,"id":"PMY776","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"设置单独的采购单进行付款，采购订单、收货通知单、采购收货，售后单界面能展示供应商二级部门、供应商等级、授信方式、先货后款、对上不付、订单类型涉及的付款卡控字段等等，所有字段参考TP的采购单列表界面"},{"row":599,"id":"PMY777","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"合同界面字段增加供应商二级部门、供应商等级、订单类型，供应商对接人等字段"},{"row":600,"id":"PMY778","name":"未命名需求","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"汉堡(郑志毅)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"付款界面的账号跟随订单上的二级部门跳转出来"}]},"自动支款流程优化":{"total":11,"done":0,"rate":0,"requirements":[{"row":291,"id":"PMY285","name":"自动支款","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台","batch":"0807批次","onlineDate":"-","scenario":"参考TP自动支款相关需求列表，包括预售、终端。失败编码需全部展示出来"},{"row":292,"id":"PMY286","name":"现货超7天自动支款卡控","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"非过户我司，现货零售订单，预计B2提货时间大于7天，自动支款报错，并专门做一个报错编码，提示需要收齐上下游合同"},{"row":307,"id":"PMY301","name":"支款比例设置","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"在供应商资料卡设置自动支款比例，每单自动按照比例支款，可以把控节约我司的现金流；付款界面有需要按比例模糊支款的，在支款界面可以直接计算，如TP截图"},{"row":330,"id":"PMY327","name":"付款流程优化","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"针对联营供应商、XG4、G类供应商先货后款订单需要提前付款时，交易员可以直接在对应订单上点击按钮，自动触发企微审批流，省去在企微重复填写信息、提交的动作，提高效率。审批流通过后全额付款实现系统自动付，定金类付款流转至对应商务运营审批，手动操作付款。"},{"row":331,"id":"PMY328","name":"付款流程优化","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"针对二、三类期货订单赎货付尾款，以及现货超7天订单尾款提前支付的场景，交易员可以直接在对应订单上点击按钮，自动触发企微审批流，省去在企微重复填写信息、提交的动作，提高效率。审批流通过后全额付款实现系统自动付，定金类付款流转至对应商务运营审批，手动操作付款。"},{"row":332,"id":"PMY329","name":"付款流程优化","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"针对订单打了对上不付款标签，需要提前付款的场景，可以直接在对应订单上点击按钮，自动触发企微审批流，省去在企微重复填写信息、提交的动作，提高效率。审批流通过后全额付款实现系统自动付，定金类付款流转至对应商务运营审批，手动操作付款。"},{"row":385,"id":"PMY383","name":"供应商合作条件订单生效-支款","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"招商","batch":"0724批次","onlineDate":"-","scenario":"供应商资料卡中配置的授信类型（T+1）、返利、自动支款、支款时效等订单在生成、付款等环节时需要自动代入卡控"},{"row":479,"id":"PMY606","name":"运营敏采自动支款卡控：（待定）运营敏采自动支款卡控","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台730","batch":"0724批次","onlineDate":"-","scenario":"运营敏采自动支款卡控：（待定）运营敏采自动支款卡控"},{"row":482,"id":"PMY609","name":"付款流程优化：针对联营供应商、XG4、G类供应商先货后款订单需要提前付款时，交易员可以直接在对应订单上点击按钮，自动触发企微审批流，省去在企微重复填写信息、提交的动作，提高效率。审批流通过后全额付款实现系统自动付，定金类付款流转至对应商务运营审批，手动操作付款。","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台730","batch":"0724批次","onlineDate":"-","scenario":"付款流程优化：针对联营供应商、XG4、G类供应商先货后款订单需要提前付款时，交易员可以直接在对应订单上点击按钮，自动触发企微审批流，省去在企微重复填写信息、提交的动作，提高效率。审批流通过后全额付款实现系统自动付，定金类付款流转至对应商务运营审批，手动操作付款。"},{"row":483,"id":"PMY610","name":"供应商资料卡：在供应商资料卡页面可以自行配置是否模糊支款，如果需要模糊支款，则每单都模糊，不再按照传统的计量方式决定，如果不模糊支款，则每单全额打款，无需再发邮件让产研同事配置。","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台730","batch":"0724批次","onlineDate":"-","scenario":"供应商资料卡：在供应商资料卡页面可以自行配置是否模糊支款，如果需要模糊支款，则每单都模糊，不再按照传统的计量方式决定，如果不模糊支款，则每单全额打款，无需再发邮件让产研同事配置。"},{"row":502,"id":"PMY632","name":"付款流程优化：针对订单打了对上不付款标签，需要提前付款的场景，可以直接在对应订单上点击按钮，自动触发企微审批流，省去在企微重复填写信息、提交的动作，提高效率。审批流通过后全额付款实现系统自动付，定金类付款流转至对应商务运营审批，手动操作付款。","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"木华黎(潘啟金)","department":"中台730","batch":"0724批次","onlineDate":"-","scenario":"付款流程优化：针对订单打了对上不付款标签，需要提前付款的场景，可以直接在对应订单上点击按钮，自动触发企微审批流，省去在企微重复填写信息、提交的动作，提高效率。审批流通过后全额付款实现系统自动付，定金类付款流转至对应商务运营审批，手动操作付款。"}]},"项目订单流程线上化":{"total":2,"done":0,"rate":0,"requirements":[{"row":88,"id":"PMY068","name":"项目订单标签","status":"待BP分析","done":false,"priority":"P1（现货）","owner":"胖曹(曹元珍)","department":"招商","batch":"0724批次","onlineDate":"-","scenario":"如存在项目订单的情况，需要选择项目负责人、项目类型，影响业绩统计、绩效发放等。"},{"row":381,"id":"PMY378","name":"订单项目信息","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"胖曹(曹元珍)","department":"人力","batch":"0724批次","onlineDate":"-","scenario":"订单项目、项目负责人信息（工号、姓名），用于核算订单项目提成核算和发放"}]},"客户提货流程优化":{"total":18,"done":0,"rate":0,"requirements":[{"row":50,"id":"PMY026","name":"过户申请单重复发送","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"已申请过户我司的订单，在提货通知里创建提货函时，还是会同步生成过户申请单给供应商，重复发送了。"},{"row":52,"id":"PMY028","name":"收货确认函导出优化","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"收货确认函导出下游结算数据，而不是实提数据，有些订单涉及理进磅出和加工，下游并不按供应商的实提重量结算。"},{"row":82,"id":"PMY061","name":"提货函短信优化","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"一个客户多笔提货函支持合并发送短信，客户多笔提货函只需回复一个短信即可"},{"row":115,"id":"PMY100","name":"超期未提管理","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"风控","batch":"0724批次","onlineDate":"-","scenario":"超期未提：支持自定义配置超期未提天数，超期未提催提短信发送，超期未提业务侧反馈，参照tp"},{"row":151,"id":"PMY139","name":"客户运营——收货确认","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"①是全量订单都做收货确认（企微工作台环节）？还是60吨以上和转货权订单做收货确认？终端目前全量收货确认——需跟维尼和风控确认收货确认逻辑。 ②狐狸客户、指定交易，需跟TP保持一致。——P0"},{"row":152,"id":"PMY140","name":"客户运营——实提确认","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"名称需调整为实提确认，胖猫云系统的实提确认审核，需支持批量上传批量审核功能"},{"row":247,"id":"PMY240","name":"提货函","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"法务","batch":"0724批次","onlineDate":"-","scenario":"与TP保持一致的发起及卡控逻辑"},{"row":276,"id":"PMY269","name":"胖猫云会限制提单导出","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"交易员创建的提单备注字数超过90字，就会导致无法下载提单，影响发货，应该是只要交易员能提交，就不要限制导出"},{"row":280,"id":"PMY274","name":"掌柜开通显示","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"胖猫掌柜是否开通，能体现在采购订单、收货通知单、销售订单等页面，便于内部人员识别实提、提货函等由供应商还是我司操作"},{"row":316,"id":"PMY313","name":"已做提单还能修改订单吨位","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"强卡控"},{"row":383,"id":"PMY380","name":"收货通知单页面需要新增预收对应销售采购金额和实提重量对应销售采购金额","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"收货通知单页面需要新增预收对应金额和实提重量对应金额"},{"row":406,"id":"PMY522","name":"提货通知单页面差异","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"问题描述：TP字段枚举较全，目前缺少是否赊销的字段；胖猫云：字段较为单一，且无法导出带业务员名字的明细表，列表展示字段和导出表格字段不一致;2、站内打开其他页面，提货通知单已筛选的条件自动刷新:3、不支持客户关键词搜索，例如搜物产;"},{"row":407,"id":"PMY523","name":"审核发货确认","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"-","batch":"0724批次","onlineDate":"-","scenario":"问题描述：TP支持批量审核，且可按抬头、时间去分类汇总金额；胖猫云仅支持单个审核，且无抬头、时间分类汇总"},{"row":476,"id":"PMY601","name":"交易员创建的提单备注字数超过90字，就会导致无法下载提单，影响发货，应该是只要交易员能提交，就不要限制导出","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台730","batch":"0724批次","onlineDate":"-","scenario":"交易员创建的提单备注字数超过90字，就会导致无法下载提单，影响发货，应该是只要交易员能提交，就不要限制导出"},{"row":518,"id":"PMY652","name":"推送物流单生成的费用单，需要按照物流单里对应的明细规格反应实提数据，现在系统默认是整单实提，增加改写的工作量。","status":"产品方案中","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台730","batch":"0724批次","onlineDate":"-","scenario":"推送物流单生成的费用单，需要按照物流单里对应的明细规格反应实提数据，现在系统默认是整单实提，增加改写的工作量。"},{"row":583,"id":"PMY759","name":"胖猫云系统—提货通知单页面：增加筛选字段。另外解决列表展示字段和报表导出字段不一致的问题。","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"胖猫云系统—提货通知单页面：增加筛选字段。另外解决列表展示字段和报表导出字段不一致的问题。"},{"row":584,"id":"PMY760","name":"审核发货确认：TP支持批量审核，且可按抬头、时间去分类汇总金额；胖猫云仅支持单个审核，且无抬头、时间分类汇总","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"审核发货确认：TP支持批量审核，且可按抬头、时间去分类汇总金额；胖猫云仅支持单个审核，且无抬头、时间分类汇总"},{"row":601,"id":"PMY782","name":"无需收货确认的场景： 1、除狐狸客户、指定订单以外的60吨以下车提订单 2、过户至我司非跳转抬头的订单（含狐狸客户、指定订单）","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"玛奇朵(柳美香)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":""}]},"出库前&后售后线上流程优化":{"total":7,"done":0,"rate":0,"requirements":[{"row":428,"id":"PMY547","name":"胖猫云出库后售后流程优化","status":"待研发评审","done":false,"priority":"P0（型管）","owner":"长风(王世通)","department":"中台730","batch":"0710批次","onlineDate":"-","scenario":"胖猫云出库后售后流程： 1、要加原因说明，按企微审批流的5个原因，除个人失误外，其他均需签协议 2、上传的附件要附在审批流里"},{"row":436,"id":"PMY555","name":"出库前售后界面优化：1、售后/提货完成流程，展示客商信息、退货金额明细、原因、附件，供应商已付款金额，统一到一个界面执行（目前存在部分在胖猫云审批任务、部分在企微审批），系统原因、交易个人失误等只需我司内部报备的，可以流程直接到对应上级审批完再到商务运营，免去交易员线下报备、传附件等流程；2、交易员收款后申请订单提货完成（即售后）需要经过商务运营审批，可以自动审批通过部分参考tp要求 3、参照TP要优化的方案来，还有补单关联等场景；售后界面优化：售后需要一对多的逻辑，参考终端一对多的方案（保持TP一对一拆单逻辑）； 4、售后流程的附件模板：交易发起售后时，按售后类型有对应的可下载对应的确认模板","status":"产品未开始","done":false,"priority":"P0（型管）","owner":"汉堡(郑志毅)","department":"中台730","batch":"0724批次","onlineDate":"-","scenario":""},{"row":517,"id":"PMY651","name":"出库后退货流程中，涉及胖猫物流费时，TP端物流费会和货物单价一并退回客户账户余额，需要交易员单独去收取或者物流结算通其他方式调整。建议胖猫云上已实际产生的物流费，申请出库后退货流程时，可以支持选择仅退货款，其他费用不动","status":"待研发评审","done":false,"priority":"P0（型管）","owner":"长风(王世通)","department":"中台730","batch":"0710批次","onlineDate":"-","scenario":""},{"row":555,"id":"PMY716","name":"售后：销售按照件数卖的，采购是吨位采购的，发起销售退货退款背靠背生成采购退货单时，系统未按照采购的计价单位来生成采购退货金额退货","status":"待研发评审","done":false,"priority":"P0（型管）","owner":"长风(王世通)","department":"交付","batch":"0710批次","onlineDate":"-","scenario":"逻辑缺失，退货时没有看采购的计价单位，统一按照了销售的计价单位导致异常 终端：退货单编号：XSTH-XSDD53260503004-1可以复现查原因"},{"row":558,"id":"PMY722","name":"仅退货，补退款的场景。目前仍会在待收款单据中创建一笔单子，且无法核销。 期望：无实际付款的订单能核销退款金额。","status":"待研发评审","done":false,"priority":"P0（型管）","owner":"长风(王世通)","department":"财务","batch":"0710批次","onlineDate":"-","scenario":""},{"row":560,"id":"PMY730","name":"采购售后未付款金额不会自动刷新应付金额问题","status":"待研发评审","done":false,"priority":"P0（型管）","owner":"长风(王世通)","department":"交付","batch":"0710批次","onlineDate":"-","scenario":"1.采购单未付款，发起售后流程（包含退货退款&仅退款），售后单审核通过后发起付款申请报错。"},{"row":561,"id":"PMY731","name":"销售售后已赊销未收款金额不会自动刷新销售订单应收金额","status":"待研发评审","done":false,"priority":"P0（型管）","owner":"长风(王世通)","department":"交付","batch":"0710批次","onlineDate":"-","scenario":"2.销售未收款发起售后，发起售后流程（包含退货退款&仅退款），售后单审核通过后订单应收仍在。"}]},"开票流程优化":{"total":10,"done":0,"rate":0,"requirements":[{"row":57,"id":"PMY033","name":"发票及开票明细批量下载","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"（1）交易员：支持在胖猫云批量下载某个客户某个时间段的已开票的版式文件和明细； （2）发票组/客户支持组：支持对指定批量订单号、批量采购客户、发票号码去查询和下载。"},{"row":58,"id":"PMY034","name":"合并开票优化","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0807批次","onlineDate":"-","scenario":"（1）系统自动合并开票：默认合并同个交易员的订单，客户二级部门不同除外； （2）手动申请合并开票：新增两个选项，1）合并销售部门一致的选项；2)合并全国的选项； （3）合并开票规则设置放在CRM-具体方案待评估"},{"row":61,"id":"PMY037","name":"申请开票后，销售部门和交易员展示优化。","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"申请开票后，销售部门按实际业务发生部门和交易员展示，不要默认显示为B2结算。"},{"row":62,"id":"PMY038","name":"很多筛选条件不支持关键字搜索","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"比如，我想搜物产下面所有抬头，我输入物产，只能等待系统枚举出抬头选上，不支持一把跳出。"},{"row":146,"id":"PMY134","name":"客户运营——开票资料审核与维护","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"中台","batch":"0807批次","onlineDate":"-","scenario":"开票资料中的税号从企查查自动同步，并自动审核开票资料; 若是交易员手动修改的，则需审核"},{"row":153,"id":"PMY141","name":"客户运营——开票申请","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"①申请开票界面可以批量输入多个订单号，方便合并申请开票 ②新建销项发票申请界面，不能申请开票的明细标灰，显示不可申请。比如：已收货确认金额=已申请金额、已收货确认金额为0，都是无法申请开票的，直接标灰，显示不可勾选。（年前已提需求） ③胖猫云申请开票后，后面的申请按钮变灰不能点击，前面的批量申请按钮也变灰不可点击。"},{"row":154,"id":"PMY142","name":"客户运营——开票申请","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"中台","batch":"0807批次","onlineDate":"-","scenario":"TP系统一个订单支持同时申请开多张发票，胖猫云系统不行，希望也能支持同一个订单甚至同一条明细申请开多张发票"},{"row":155,"id":"PMY143","name":"客户运营——开票申请","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"XQ-02541——新建销项发票申请界面，里面的明细可拖动上下位置，调整开票位置"},{"row":159,"id":"PMY147","name":"客户运营——开票优化","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"快速核销时需要有填写发票号的框以及备注栏，以供后续反向追溯，并且增加能上传附件的地方，线下开票的票面可以导进去。"},{"row":384,"id":"PMY382","name":"离职人员未完结的订单无法进行开票问题","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"中台","batch":"0724批次","onlineDate":"-","scenario":"【业务员不存在】导致不能申请开票的问题，正常来说，申请开票跟交易员是否改名字、是否离职不应该挂钩，不应该影响开票"}]},"B1结算流程优化":{"total":3,"done":0,"rate":0,"requirements":[{"row":571,"id":"PMY746","name":"胖猫云需要感知结算平台的逆向流程","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"结算平台中，结算补退之后，支持取消关闭。但取消关闭之后，胖猫云的订单仍然无法修改。这个逆流成，胖猫云需要支持。否则取消关闭无实际意义。"},{"row":573,"id":"PMY748","name":"【B1重点】结算机器人自动补款","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0807批次","onlineDate":"-","scenario":"【B1重点】结算机器人：1、结算请款界面，已上传附件且开户行类型为线下时（如果请款金额为0，不校验是否上传附件以及开户行类型），5分钟后自动进行审批；2、根据群里供应商确认一致的尾款，或对账函回函盖的相符，自动发起补款申请；3、补款后可以通过点击按钮，推送补款截图和已申请的文字到供应商对账群。"},{"row":585,"id":"PMY761","name":"【B1重点】结算机器人：对账函上期未回函又被艾特出结算函时，删除上期的未回函，重新生成对账函并发送","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"【B1重点】结算机器人：对账函上期未回函又被艾特出结算函时，删除上期的未回函，重新生成对账函并发送"}]},"B2结算流程优化":{"total":8,"done":0,"rate":0,"requirements":[{"row":572,"id":"PMY747","name":"销售结算支持二次结算","status":"待排期","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"胖猫云-终端对接资金平台后，订单已结算状态下，（订单已收款＞应收款，生成结算单后，跟单操作多收款退回余额，导致产生对应的一笔收款单）若有需要调整结算数据的情况，无法再撤回结算并进行修改，现在没有逆向的操作了。需求编号PMY189解决之后，此需求也可解决。"},{"row":574,"id":"PMY749","name":"【一朵云_结算平台】销售订单的已收金额，需要考虑加入结算单补退款金额的分摊金额","status":"待排期","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"销售订单的已收金额，需要考虑加入结算单补退款金额的分摊金额，按照销售结算金额比例分摊。"},{"row":575,"id":"PMY750","name":"【TP查询客户对账单（新）】增加数据源","status":"待排期","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"菜单路径：电商ERP-交易管理-查询客户对账单（新）（TP）期望：增加数据源，胖猫云租户：现货租户+预售预购+终端关联：涉及胖猫云采销测提供交易相关数据接口"},{"row":576,"id":"PMY751","name":"【一朵云_结算平台】销售结算的明细按照订单明细维度展示","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0807批次","onlineDate":"-","scenario":"终端结算调差时需逐条查找明细，不便于识别特定订单或SKU是否可以订单的明细维度？"},{"row":577,"id":"PMY752","name":"【一朵云_结算平台】对账函中未包含易采数据","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"对账函中未包含易采数据（跨系统数据无法采集）B2对账"},{"row":578,"id":"PMY753","name":"【一朵云_结算平台】贴息接入票据系统","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"贴息需要按线下台账导入系统，时效性滞后。B2对账"},{"row":586,"id":"PMY762","name":"订单结算状态与销售结算单解耦，允许开票前修改实提","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"背景：胖猫云系统中，订单结算状态（结算中/已结算）与修改权限强绑定——一旦进入结算中或已结算，订单实提数据完全锁死，既不能在胖猫云改，也不能在云仓改。要改就得找B2结算手动取消结算，或被直接修改结算单数据，操作繁琐且修改后可能无法同步采购侧，导致实提和结算数据出现差异，难以追溯。需求：1. 解耦结算状态与修改权限：不依赖结算单的状态来控制订单是否可修改。订单开票前，业务都可以申请修改实提和销价；部分开票的，卡控到未开票部分的明细维度2. 结算状态改为虚拟状态：沿用TP逻辑——已结算的订单修改实提后会产生新的待补退数据，订单状态自动变为未结算，补退完成后重新变为已结算。结算单不再是控制修改权限的硬锁，而是一个虚拟状态概念3. 结算单改为调整单概念：结算单仅作为调整记录，支持多次修改，不再作为结算完成的终态锁需求价值：大幅减少结算人员手工取消结算的工作量；消除实提与结算数据的差异，差异可追溯；业务团队可自主申请修改实提，无需等待结算介入。"},{"row":587,"id":"PMY763","name":"B2对账函增加费用单数据，修复贴息费导致的余额和开票错误","status":"产品未开始","done":false,"priority":"P1（现货）","owner":"扁豆(秦腾)","department":"财务","batch":"0724批次","onlineDate":"-","scenario":"背景：供应链主体的贴息费走线上FY费用单（逾期利息、非现金加价），收款和开票都在线上完成。其他主体的贴息走线下，对账函逻辑正常。但供应链主体走线上后，对账函出现两个数据错误：1）实收金额包含贴息费部分，导致实收-提货计算的余额变大（余额里含了贴息，不是真正的余款，已经被费用单收掉了）；2）已开票无法拆分货物发票和费用单发票，导致已开票虚高。需求：1. 对账函能取到线上费用单数据（费用项目：逾期利息、非现金加价），在计算余额时减去这部分费用金额2. 开票维度拆分：货物应开票=提货金额；服务费应开票=逾期利息费用单；贴息应开票=非现金加价费用单3. 已开票识别：XSDD订单号=货物订单发票；FY费用单发票，能识别是逾期利息还是非现金加价则自动拆分，不能识别则支持手动导入"}]}}};
+    // REQUIREMENT_DATA_END
+
+    const state = {
+      selectedDomain: null,
+      mapFilter: 'all',
+      issueFilter: 'all',
+      domains: [
+        {
+          id: 'customer', order: '01', name: '基础资料', icon: 'contact-round', score: 96, weight: 10, status: 'ready',
+          scenarios: [
+            { name: '客户与供应商档案', status: 'ready', desc: '统一维护客商、联系人、结算与开票信息。', action: '可直接上线' },
+            { name: '商品与规格档案', status: 'ready', desc: '支持品名、材质、规格、产地等钢材属性。', action: '可直接上线' },
+            { name: '仓库与货位档案', status: 'ready', desc: '支持自有仓、外部仓及逻辑货位。', action: '可直接上线' },
+            { name: '价格与税率基础配置', status: 'conditional', desc: '少量历史税率需上线前补齐。', action: '数据组补录' }
+          ]
+        },
+        {
+          id: 'sales', order: '02', name: '订单管理', icon: 'file-signature', score: 92, weight: 15, status: 'ready',
+          scenarios: [
+            { name: '找货下单', status: 'ready', desc: '支持找货结果确认、订单创建及后续业务流转。', action: '按目标流程直接上线' },
+            { name: '敏采流程线上化', status: 'ready', desc: '将敏采业务的申请、审批与执行过程纳入线上管理。', action: '按目标流程直接上线' },
+            { name: '转寄售流程线上化', status: 'ready', desc: '支持转寄售业务的订单流转、状态跟踪与过程留痕。', action: '按目标流程直接上线' },
+            { name: '订单标签', status: 'ready', desc: '通过业务标签标识订单类型、特征及处理要求。', action: '按目标流程直接上线' },
+            { name: '客商二级部门线上化', status: 'ready', desc: '支持订单关联客商二级部门并在线流转业务信息。', action: '按目标流程直接上线' },
+            { name: '自动支款流程优化', status: 'ready', desc: '优化订单触发支款、审批及结果回写的流程衔接。', action: '按优化后流程直接上线' },
+            { name: '项目订单流程线上化', status: 'ready', desc: '支持项目订单从创建、执行到完成的全过程线上管理。', action: '按目标流程直接上线' }
+          ]
+        },
+        {
+          id: 'purchase', order: '03', name: '合同管理', icon: 'shopping-cart', score: 84, weight: 12, status: 'conditional',
+          scenarios: [
+            { name: '按单采购', status: 'ready', desc: '销售合同可下推采购合同并跟踪到货。', action: '可直接上线' },
+            { name: '备货采购', status: 'ready', desc: '支持库存型采购及采购价格审批。', action: '可直接上线' },
+            { name: '钢厂资源单导入', status: 'conditional', desc: '资源单需按标准模板批量导入。', action: '上线初期人工导入' },
+            { name: '采购暂估与定价', status: 'conditional', desc: '暂估冲回需由财务按月执行。', action: '建立月结SOP' }
+          ]
+        },
+        {
+          id: 'inventory', order: '04', name: '提货管理', icon: 'warehouse', score: 91, weight: 18, status: 'ready',
+          scenarios: [
+            { name: '客户提货流程优化', status: 'ready', desc: '优化客户提货申请、审核、放货及提货结果回写的全流程衔接。', action: '按优化后流程直接上线' },
+            { name: '出库前&后售后线上流程优化', status: 'ready', desc: '打通出库前后售后问题的线上发起、处理、反馈与闭环。', action: '按优化后流程直接上线' }
+          ]
+        },
+        {
+          id: 'processing', order: '05', name: '一体化加工', icon: 'factory', score: 68, weight: 12, status: 'blocked',
+          scenarios: [
+            { name: '加工委托与领料', status: 'ready', desc: '支持自加工、委外加工委托及原料领用。', action: '可直接上线' },
+            { name: '成品与余废料入库', status: 'ready', desc: '支持成品、半成品、余料及废料分类入库。', action: '可直接上线' },
+            { name: '加工损耗成本分摊', status: 'blocked', desc: '多成品损耗成本无法按客户口径自动闭环。', action: '产品方案整改并复测' },
+            { name: '委外加工费结算', status: 'conditional', desc: '特殊计价方式需人工调整结算单。', action: '上线初期人工复核' }
+          ]
+        },
+        {
+          id: 'logistics', order: '06', name: '一体化物流', icon: 'truck', score: 83, weight: 10, status: 'conditional',
+          scenarios: [
+            { name: '客户自提', status: 'ready', desc: '支持提货码、提货委托与出库校验。', action: '可直接上线' },
+            { name: '销售配送', status: 'ready', desc: '支持派车、装车、签收和回单。', action: '可直接上线' },
+            { name: '一车多单', status: 'conditional', desc: '一车跨客户配送需拆分登记签收。', action: '调度按SOP处理' },
+            { name: '运费结算', status: 'conditional', desc: '部分线路计价规则需线下核对。', action: '上线后优化规则引擎' }
+          ]
+        },
+        {
+          id: 'settlement', order: '07', name: '结算与开票', icon: 'receipt-text', score: 78, weight: 12, status: 'conditional',
+          scenarios: [
+            { name: '开票流程优化', status: 'conditional', desc: '优化开票申请、审核、开具及回写的全流程衔接。', action: '梳理目标流程并完成验证' },
+            { name: 'B1结算流程优化', status: 'conditional', desc: '优化B1业务场景的结算处理和上下游单据联动。', action: '按B1场景完成配置与复测' },
+            { name: 'B2结算流程优化', status: 'conditional', desc: '优化B2业务场景的结算处理和异常业务闭环。', action: '按B2场景完成配置与复测' }
+          ]
+        },
+        {
+          id: 'finance', order: '08', name: '数据报表', icon: 'shield-check', score: 72, weight: 11, status: 'blocked',
+          scenarios: [
+            { name: '收付款与往来核销', status: 'ready', desc: '支持预收预付、收付款及应收应付核销。', action: '可直接上线' },
+            { name: '业务财务一体化凭证', status: 'ready', desc: '库存、结算单据可生成财务凭证。', action: '可直接上线' },
+            { name: '客户信用额度控制', status: 'blocked', desc: '超额度订单告警但未强制拦截出库。', action: '配置强校验并完成复测' },
+            { name: '毛利与资金占用分析', status: 'conditional', desc: '历史成本口径需进一步清洗。', action: '上线后补齐历史数据' }
+          ]
+        }
+      ],
+      issues: [
+        { id: 'I-01', level: 'blocker', title: '加工损耗成本无法按客户口径自动分摊', impact: '可能造成成品入库成本与原料成本不闭环，影响库存成本和毛利准确性。', domain: '一体化加工', owner: '产品 / 实施', due: '2026-07-18', status: '整改中', workaround: '加工业务暂缓上线；贸易库存不受影响。', acceptance: '四类成品算例成本差额不超过 0.01 元。' },
+        { id: 'I-02', level: 'blocker', title: '超信用额度未强制拦截销售出库', impact: '存在超授信发货风险，可能扩大逾期应收敞口。', domain: '财务与风控', owner: '产品 / 风控', due: '2026-07-17', status: '待复测', workaround: '上线前由财务逐单审核放货，不建议长期使用。', acceptance: '超额度订单无法审核或出库，授权放行全程留痕。' },
+        { id: 'I-03', level: 'risk', title: '钢厂资源单需要按模板人工导入', impact: '高峰期采购录入效率下降，但不影响采购业务闭环。', domain: '采购协同', owner: '实施 / 采购', due: '2026-07-22', status: '已有方案', workaround: '由采购内勤每日两次批量导入并校验失败记录。', acceptance: '500行资源单导入成功率达到 99%。' },
+        { id: 'I-04', level: 'risk', title: '一车多单配送需拆分登记客户签收', impact: '调度和回单岗位增加操作步骤，可能影响回单及时率。', domain: '一体化物流', owner: '实施 / 物流', due: '2026-07-24', status: '已有方案', workaround: '按客户维度拆分签收任务，调度岗位统一操作。', acceptance: '一车三单场景可完整追踪每单签收状态。' },
+        { id: 'I-05', level: 'optimize', title: '跨月红冲凭证需要财务人工复核', impact: '增加月结工作量，不影响正常销售、开票和收款。', domain: '结算开票', owner: '财务', due: '2026-08-05', status: '待优化', workaround: '月结前按红冲复核清单逐笔确认。', acceptance: '红冲后业务与财务账差异为零。' },
+        { id: 'I-06', level: 'optimize', title: '历史成本数据尚未全部清洗完成', impact: '上线初期同比毛利分析口径不完整，不影响当期交易。', domain: '经营分析', owner: '客户数据组', due: '2026-08-10', status: '进行中', workaround: '上线日后数据使用新口径，历史期间单独标识。', acceptance: '近12个月重点商品成本覆盖率达到 95%。' }
+      ],
+      gates: [
+        { name: '核心业务流程通过率', rule: '门槛 100%', current: '90%', pass: false },
+        { name: '上线阻断项', rule: '门槛 0 项', current: '2 项', pass: false },
+        { name: '业务财务对账准确率', rule: '门槛 ≥ 99.5%', current: '99.8%', pass: true },
+        { name: '关键用户培训通过率', rule: '门槛 ≥ 90%', current: '92%', pass: true }
+      ]
+    };
+
+    function getSummary() {
+      const totalWeight = state.domains.reduce((sum, domain) => sum + domain.weight, 0);
+      const weightedScore = state.domains.reduce((sum, domain) => sum + domain.score * domain.weight, 0) / totalWeight;
+      const blockerCount = state.issues.filter(issue => issue.level === 'blocker').length;
+      return { score: Math.round(weightedScore), blockerCount };
+    }
+
+    function statusTag(status) {
+      const meta = STATUS_META[status];
+      return `<span class="tag ${meta.tagClass}"><i data-lucide="${meta.icon}"></i>${meta.label}</span>`;
+    }
+
+    function issueTag(level) {
+      const meta = ISSUE_META[level];
+      return `<span class="tag ${meta.tagClass}">${meta.label}</span>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function getRequirementTopic(name) {
+      return REQUIREMENT_DATA.topics[name] || { total: 0, done: 0, rate: 0, requirements: [] };
+    }
+
+    function requirementStatusTag(requirement) {
+      if (requirement.done) return `<span class="tag tag-success">${escapeHtml(requirement.status)}</span>`;
+      if (requirement.status === '取消' || requirement.status === '暂定') return `<span class="tag tag-neutral">${escapeHtml(requirement.status)}</span>`;
+      if (requirement.status.includes('研发') || requirement.status.includes('测试')) return `<span class="tag tag-info">${escapeHtml(requirement.status)}</span>`;
+      return `<span class="tag tag-warn">${escapeHtml(requirement.status)}</span>`;
+    }
+
+    function openSourceDocument() {
+      window.open(REQUIREMENT_DATA.meta.sourceUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    function renderSummary() {
+      const summary = getSummary();
+      document.getElementById('overallScore').textContent = `${summary.score}%`;
+      document.getElementById('kpiSatisfaction').textContent = `${summary.score}%`;
+      document.getElementById('kpiBlockers').textContent = `${summary.blockerCount} 项`;
+      const scoreRing = document.getElementById('scoreRing');
+      scoreRing.style.setProperty('--score', summary.score);
+      scoreRing.setAttribute('aria-label', `综合上线准备度${summary.score}%`);
+    }
+
+    function renderDomains() {
+      const track = document.getElementById('flowTrack');
+      track.innerHTML = state.domains.map(domain => {
+        const scenarioPassed = domain.scenarios.filter(item => item.status === 'ready').length;
+        const blockerCount = domain.scenarios.filter(item => item.status === 'blocked').length;
+        const isDimmed = state.mapFilter !== 'all' && domain.status !== state.mapFilter;
+        const isSelected = state.selectedDomain === domain.id;
+        return `
+          <div class="stage-wrap">
+            <button class="stage-card ${domain.status}${isDimmed ? ' dimmed' : ''}${isSelected ? ' selected' : ''}" data-domain-id="${domain.id}" aria-label="${domain.name}，满足度${domain.score}%">
+              <div class="stage-head">
+                <div class="stage-icon"><i data-lucide="${domain.icon}"></i></div>
+                <div><div class="stage-order">环节 ${domain.order}</div><div class="stage-name">${domain.name}</div></div>
+              </div>
+              <div class="stage-body">
+                <div class="stage-metric"><span class="stage-percent">${domain.score}%</span><span class="stage-count">${scenarioPassed}/${domain.scenarios.length} 已满足</span></div>
+                <div class="progress"><div class="progress-bar" style="width:${domain.score}%"></div></div>
+                <div class="stage-footer">${statusTag(domain.status)}<span class="issue-count">${blockerCount ? `<strong>${blockerCount}</strong> 项阻断` : '无阻断'}</span></div>
+              </div>
+            </button>
+          </div>`;
+      }).join('');
+      bindDomainEvents();
+      refreshIcons();
+    }
+
+    function renderIssues() {
+      const issues = state.issueFilter === 'all' ? state.issues : state.issues.filter(issue => issue.level === state.issueFilter);
+      const body = document.getElementById('issueTableBody');
+      document.getElementById('issueCountLabel').textContent = `当前显示 ${issues.length} 项重点问题`;
+      if (!issues.length) {
+        body.innerHTML = '<tr><td colspan="6" class="table-empty">当前筛选条件下暂无问题</td></tr>';
+        return;
+      }
+      body.innerHTML = issues.map(issue => `
+        <tr data-issue-id="${issue.id}" tabindex="0">
+          <td>${issueTag(issue.level)}</td>
+          <td><span class="cell-main">${issue.title}</span><span class="cell-sub">${issue.impact}</span></td>
+          <td>${issue.domain}</td>
+          <td>${issue.owner}</td>
+          <td class="num">${issue.due}</td>
+          <td><button class="btn-link" data-open-issue="${issue.id}">${issue.status}</button></td>
+        </tr>`).join('');
+      bindIssueEvents();
+    }
+
+    function renderGates() {
+      document.getElementById('gateList').innerHTML = state.gates.map(gate => `
+        <div class="gate-item">
+          <div class="gate-icon ${gate.pass ? 'pass' : 'fail'}"><i data-lucide="${gate.pass ? 'check' : 'x'}"></i></div>
+          <div><div class="gate-name">${gate.name}</div><div class="gate-rule">${gate.rule}</div></div>
+          <div class="gate-current ${gate.pass ? 'pass' : 'fail'}">${gate.current}</div>
+        </div>`).join('');
+    }
+
+    function renderDrawer(domainId) {
+      const domain = state.domains.find(item => item.id === domainId);
+      if (!domain) return;
+      state.selectedDomain = domainId;
+      const readyCount = domain.scenarios.filter(item => item.status === 'ready').length;
+      const blockerCount = domain.scenarios.filter(item => item.status === 'blocked').length;
+      document.getElementById('drawerTitle').textContent = domain.name;
+      document.getElementById('drawerSubtitle').textContent = `业务环节 ${domain.order} · ${STATUS_META[domain.status].label}`;
+      document.getElementById('drawerBody').innerHTML = `
+        <div class="source-data-banner">
+          <div class="source-data-copy"><strong>需求数据已关联</strong><br><span>Excel 快照 ${escapeHtml(REQUIREMENT_DATA.meta.snapshotAt)} · 点击二级菜单查看明细</span></div>
+          <button class="btn btn-sm" data-open-source><i data-lucide="external-link"></i>源表</button>
+        </div>
+        <div class="drawer-summary">
+          <div class="drawer-kpi"><div class="drawer-kpi-label">功能满足度</div><div class="drawer-kpi-value">${domain.score}%</div></div>
+          <div class="drawer-kpi"><div class="drawer-kpi-label">已满足场景</div><div class="drawer-kpi-value" style="color:var(--success)">${readyCount}</div></div>
+          <div class="drawer-kpi"><div class="drawer-kpi-label">阻断场景</div><div class="drawer-kpi-value" style="color:${blockerCount ? 'var(--danger)' : 'var(--success)'}">${blockerCount}</div></div>
+        </div>
+        <div class="scenario-list">
+          ${domain.scenarios.map((item, index) => {
+            const requirementTopic = getRequirementTopic(item.name);
+            return `
+              <button class="scenario-item" data-scenario-domain="${domain.id}" data-scenario-index="${index}" aria-label="查看${escapeHtml(item.name)}需求明细">
+                <div>
+                  <div class="scenario-name">${escapeHtml(item.name)}</div>
+                  <div class="scenario-desc">${escapeHtml(item.desc)}</div>
+                  <div class="scenario-metrics">
+                    <div class="scenario-metric"><div class="scenario-metric-label">需求总数</div><div class="scenario-metric-value">${requirementTopic.total}</div></div>
+                    <div class="scenario-metric"><div class="scenario-metric-label">已完成</div><div class="scenario-metric-value done">${requirementTopic.done}</div></div>
+                    <div class="scenario-metric"><div class="scenario-metric-label">完成率</div><div class="scenario-metric-value rate">${requirementTopic.rate}%</div></div>
+                  </div>
+                </div>
+                <div class="scenario-side">${statusTag(item.status)}<i data-lucide="chevron-right"></i></div>
+              </button>`;
+          }).join('')}
+        </div>`;
+      document.getElementById('drawerMask').classList.add('show');
+      document.getElementById('domainDrawer').classList.add('show');
+      document.body.style.overflow = 'hidden';
+      renderDomains();
+      bindScenarioEvents();
+      refreshIcons();
+      document.getElementById('drawerClose').focus();
+    }
+
+    function closeDrawer() {
+      state.selectedDomain = null;
+      document.getElementById('drawerMask').classList.remove('show');
+      document.getElementById('domainDrawer').classList.remove('show');
+      document.body.style.overflow = '';
+      renderDomains();
+    }
+
+    function openIssueModal(issueId) {
+      const issue = state.issues.find(item => item.id === issueId);
+      if (!issue) return;
+      document.getElementById('issueModalTitle').textContent = `${issue.id} · ${issue.title}`;
+      document.getElementById('issueModalBody').innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-label">问题等级</div><div class="detail-value">${issueTag(issue.level)}</div>
+          <div class="detail-label">业务影响</div><div class="detail-value">${issue.impact}</div>
+          <div class="detail-label">临时方案</div><div class="detail-value">${issue.workaround}</div>
+          <div class="detail-label">责任方</div><div class="detail-value">${issue.owner}</div>
+          <div class="detail-label">计划完成</div><div class="detail-value">${issue.due}</div>
+          <div class="detail-label">验收标准</div><div class="detail-value">${issue.acceptance}</div>
+          <div class="detail-label">当前状态</div><div class="detail-value">${issue.status}</div>
+        </div>`;
+      document.getElementById('issueModalMask').classList.add('show');
+      document.body.style.overflow = 'hidden';
+      refreshIcons();
+      document.getElementById('issueModalClose').focus();
+    }
+
+    function closeIssueModal() {
+      document.getElementById('issueModalMask').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function openRequirementModal(domainId, scenarioIndex) {
+      const domain = state.domains.find(item => item.id === domainId);
+      const scenario = domain && domain.scenarios[scenarioIndex];
+      if (!scenario) return;
+      const topic = getRequirementTopic(scenario.name);
+      document.getElementById('requirementModalTitle').textContent = scenario.name;
+      document.getElementById('requirementModalSubtitle').textContent = `需求明细 · 快照 ${REQUIREMENT_DATA.meta.snapshotAt}`;
+      const rows = topic.requirements.length ? topic.requirements.map(requirement => `
+        <tr>
+          <td><span class="cell-main">${escapeHtml(requirement.id)}</span><span class="cell-sub">Excel 第 ${requirement.row} 行</span></td>
+          <td><div class="requirement-name">${escapeHtml(requirement.name)}</div>${requirement.scenario ? `<div class="requirement-desc">${escapeHtml(requirement.scenario)}</div>` : ''}</td>
+          <td>${requirementStatusTag(requirement)}</td>
+          <td>${escapeHtml(requirement.priority)}</td>
+          <td>${escapeHtml(requirement.owner)}</td>
+          <td>${escapeHtml(requirement.batch)}</td>
+        </tr>`).join('') : '<tr><td colspan="6" class="table-empty">当前快照中没有匹配该迭代主题的需求</td></tr>';
+
+      document.getElementById('requirementModalBody').innerHTML = `
+        <div class="requirement-summary">
+          <div class="requirement-summary-item"><div class="requirement-summary-label">需求总数</div><div class="requirement-summary-value">${topic.total}</div></div>
+          <div class="requirement-summary-item"><div class="requirement-summary-label">已完成</div><div class="requirement-summary-value" style="color:var(--success)">${topic.done}</div></div>
+          <div class="requirement-summary-item"><div class="requirement-summary-label">完成率</div><div class="requirement-summary-value" style="color:var(--primary)">${topic.rate}%</div></div>
+        </div>
+        <div class="requirement-table-wrap">
+          <table class="detail requirement-table">
+            <thead><tr><th style="width:112px">需求编号</th><th>需求名称 / 业务场景</th><th style="width:108px">当前状态</th><th style="width:112px">优先级</th><th style="width:120px">产品主PD</th><th style="width:90px">批次</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div class="snapshot-note">完成口径：${escapeHtml(REQUIREMENT_DATA.meta.completionRule)}。数据来自 ${escapeHtml(REQUIREMENT_DATA.meta.sourceFile)}。</div>`;
+      document.getElementById('requirementModalMask').classList.add('show');
+      document.body.style.overflow = 'hidden';
+      refreshIcons();
+      document.getElementById('requirementModalClose').focus();
+    }
+
+    function closeRequirementModal() {
+      document.getElementById('requirementModalMask').classList.remove('show');
+      document.body.style.overflow = document.getElementById('domainDrawer').classList.contains('show') ? 'hidden' : '';
+    }
+
+    function setMapFilter(filter) {
+      state.mapFilter = filter;
+      renderDomains();
+      document.getElementById('businessMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const labels = { all: '已显示全部业务环节', ready: '已突出可上线业务环节', blocked: '已突出上线阻断业务环节', conditional: '已突出有条件上线业务环节' };
+      toast(labels[filter], filter === 'blocked' ? 'warn' : 'success');
+    }
+
+    function bindDomainEvents() {
+      document.querySelectorAll('[data-domain-id]').forEach(button => {
+        button.addEventListener('click', () => renderDrawer(button.dataset.domainId));
+      });
+    }
+
+    function bindIssueEvents() {
+      document.querySelectorAll('[data-issue-id]').forEach(row => {
+        row.addEventListener('click', () => openIssueModal(row.dataset.issueId));
+        row.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openIssueModal(row.dataset.issueId);
+          }
+        });
+      });
+    }
+
+    function bindScenarioEvents() {
+      document.querySelectorAll('[data-scenario-domain][data-scenario-index]').forEach(button => {
+        button.addEventListener('click', () => openRequirementModal(button.dataset.scenarioDomain, Number(button.dataset.scenarioIndex)));
+      });
+      document.querySelectorAll('[data-open-source]').forEach(button => button.addEventListener('click', event => {
+        event.stopPropagation();
+        openSourceDocument();
+      }));
+    }
+
+    function bindStaticEvents() {
+      document.querySelectorAll('[data-issue-filter]').forEach(button => {
+        button.addEventListener('click', () => {
+          state.issueFilter = button.dataset.issueFilter;
+          document.querySelectorAll('[data-issue-filter]').forEach(item => item.classList.toggle('active', item === button));
+          renderIssues();
+        });
+      });
+
+      document.querySelectorAll('[data-kpi-action]').forEach(card => {
+        const activate = () => setMapFilter(card.dataset.kpiAction);
+        card.addEventListener('click', activate);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); }
+        });
+      });
+
+      document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+      document.getElementById('drawerMask').addEventListener('click', closeDrawer);
+      document.getElementById('issueModalClose').addEventListener('click', closeIssueModal);
+      document.getElementById('issueModalConfirm').addEventListener('click', closeIssueModal);
+      document.getElementById('issueModalMask').addEventListener('click', event => {
+        if (event.target.id === 'issueModalMask') closeIssueModal();
+      });
+
+      document.getElementById('requirementModalClose').addEventListener('click', closeRequirementModal);
+      document.getElementById('requirementModalConfirm').addEventListener('click', closeRequirementModal);
+      document.getElementById('requirementOpenSource').addEventListener('click', openSourceDocument);
+      document.getElementById('requirementModalMask').addEventListener('click', event => {
+        if (event.target.id === 'requirementModalMask') closeRequirementModal();
+      });
+
+      document.getElementById('btnSource').addEventListener('click', openSourceDocument);
+
+      document.getElementById('btnRefresh').addEventListener('click', () => {
+        renderAll();
+        toast(`已按 ${REQUIREMENT_DATA.meta.snapshotAt} 数据快照重新汇总`, 'success');
+      });
+
+      document.getElementById('btnExport').addEventListener('click', () => {
+        toast('正在打开打印窗口，可另存为PDF', 'success');
+        setTimeout(() => window.print(), 350);
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+          if (document.getElementById('requirementModalMask').classList.contains('show')) closeRequirementModal();
+          else if (document.getElementById('issueModalMask').classList.contains('show')) closeIssueModal();
+          else if (document.getElementById('domainDrawer').classList.contains('show')) closeDrawer();
+        }
+      });
+    }
+
+    function toast(message, type = 'success') {
+      const wrap = document.getElementById('toastWrap');
+      const item = document.createElement('div');
+      item.className = `toast ${type}`;
+      item.textContent = message;
+      wrap.appendChild(item);
+      setTimeout(() => item.remove(), 2600);
+    }
+
+    function refreshIcons() {
+      if (window.lucide) window.lucide.createIcons({ attrs: { 'stroke-width': 1.8 } });
+    }
+
+    function renderAll() {
+      renderSummary();
+      renderDomains();
+      renderIssues();
+      renderGates();
+      document.getElementById('dataVersionLabel').textContent = `需求快照 ${REQUIREMENT_DATA.meta.snapshotAt} · 页面汇总 ${REQUIREMENT_DATA.meta.generatedAt}`;
+      refreshIcons();
+    }
+
+    bindStaticEvents();
+    renderAll();
+  </script>
+</body>
+</html>
