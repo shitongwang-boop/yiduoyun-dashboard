@@ -843,8 +843,8 @@
         <div><div class="kpi-label">上线阻断项</div><div class="kpi-value" id="kpiBlockers" style="color:var(--danger)">2 项</div><div class="kpi-sub">必须在生产切换前关闭</div></div>
         <div class="kpi-icon danger"><i data-lucide="shield-x"></i></div>
       </article>
-      <article class="kpi-item" tabindex="0" data-kpi-action="conditional" title="突出需带方案上线的业务环节">
-        <div><div class="kpi-label">上线后优化项</div><div class="kpi-value" style="color:var(--warn-text)">9 项</div><div class="kpi-sub">已有临时方案，不阻断经营</div></div>
+      <article class="kpi-item" tabindex="0" data-upcoming-action title="查看即将上线需求">
+        <div><div class="kpi-label">即将上线需求</div><div class="kpi-value" id="kpiUpcoming" style="color:var(--warn-text)">77 项</div><div class="kpi-sub" id="kpiUpcomingSub">P0 7 项 · P1 70 项（不含 P2）</div></div>
         <div class="kpi-icon warn"><i data-lucide="list-checks"></i></div>
       </article>
     </section>
@@ -1102,9 +1102,14 @@
 
     function renderSummary() {
       const summary = getSummary();
+      const upcoming = getUpcomingRequirements();
+      const p0Count = upcoming.filter(requirement => getPriorityCode(requirement.priority) === 'P0').length;
+      const p1Count = upcoming.length - p0Count;
       document.getElementById('overallScore').textContent = `${summary.score}%`;
       document.getElementById('kpiSatisfaction').textContent = `${summary.score}%`;
       document.getElementById('kpiBlockers').textContent = `${summary.blockerCount} 项`;
+      document.getElementById('kpiUpcoming').textContent = `${upcoming.length} 项`;
+      document.getElementById('kpiUpcomingSub').textContent = `P0 ${p0Count} 项 · P1 ${p1Count} 项（不含 P2）`;
       const scoreRing = document.getElementById('scoreRing');
       scoreRing.style.setProperty('--score', summary.score);
       scoreRing.setAttribute('aria-label', `综合上线准备度${summary.score}%`);
@@ -1348,6 +1353,13 @@
         card.addEventListener('keydown', event => {
           if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); }
         });
+      });
+
+      const upcomingCard = document.querySelector('[data-upcoming-action]');
+      const showUpcoming = () => document.getElementById('issueSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      upcomingCard.addEventListener('click', showUpcoming);
+      upcomingCard.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showUpcoming(); }
       });
 
       document.getElementById('drawerClose').addEventListener('click', closeDrawer);
