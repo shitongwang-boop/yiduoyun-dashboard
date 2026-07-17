@@ -155,8 +155,8 @@ def normalize_record(record, source_index, legacy, user_lookup, done_statuses):
     }
 
 
-def included(requirement):
-    return requirement["priority"].startswith(("P0", "P1")) and requirement["status"] not in EXCLUDED_STATUSES
+def included(requirement, priority_prefixes):
+    return requirement["priority"].startswith(tuple(priority_prefixes)) and requirement["status"] not in EXCLUDED_STATUSES
 
 
 def build_payload(records, config, html_path):
@@ -171,7 +171,10 @@ def build_payload(records, config, html_path):
     topics = {}
     for display_name, source_names in config["topics"].items():
         aliases = set(source_names)
-        requirements = [requirement for requirement in normalized if requirement["topic"] in aliases and included(requirement)]
+        requirements = [
+            requirement for requirement in normalized
+            if requirement["topic"] in aliases and included(requirement, config["included_priority_prefixes"])
+        ]
         done = sum(requirement["done"] for requirement in requirements)
         total = len(requirements)
         topics[display_name] = {
@@ -191,7 +194,7 @@ def build_payload(records, config, html_path):
             "snapshotAt": timestamp,
             "generatedAt": timestamp,
             "completionRule": "当前状态为已上线、已有功能已支持、已完成或问题已解决",
-            "priorityRule": "仅统计优先级 P0、P1，且排除已取消需求",
+            "priorityRule": f"数据包含优先级 {'、'.join(config['included_priority_prefixes'])}，且排除已取消需求",
             "specialAttentionRule": "是否特别关注为是",
             "unresolvedUserIds": sorted({
                 item.split(":", 1)[1]

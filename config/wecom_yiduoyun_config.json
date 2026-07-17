@@ -4,7 +4,7 @@
   "sheet_id": "q979lj",
   "header_row": "auto",
   "required_headers": ["迭代主题", "优先级", "当前状态"],
-  "included_priority_prefixes": ["P0", "P1"],
+  "included_priority_prefixes": ["P0", "P1", "P2"],
   "excluded_statuses": ["取消", "已取消"],
   "special_attention_field": "是否特别关注",
   "done_statuses": ["已上线", "已有功能已支持", "已完成", "问题已解决"],
