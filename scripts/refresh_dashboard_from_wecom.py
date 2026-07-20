@@ -149,6 +149,7 @@ def normalize_record(record, source_index, legacy, user_lookup, done_statuses):
         "batch": display_text(values.get("产品方案批次")) or "-",
         "onlineDate": timestamp_text(values.get("上线时间"), False),
         "createdAt": timestamp_text(record.get("create_time"), True),
+        "creator": display_text(record.get("creator_name")) or previous.get("creator") or "未填写",
         "specialAttention": display_text(values.get("是否特别关注")),
         "scenario": display_text(values.get("业务场景说明")),
         "topic": display_text(values.get("迭代主题")),
