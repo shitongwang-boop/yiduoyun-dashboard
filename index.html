@@ -881,7 +881,7 @@
     </section>
 
     <section class="kpi-grid" aria-label="上线关键指标">
-      <article class="kpi-item" tabindex="0" data-kpi-action="all" title="查看全部业务环节">
+      <article class="kpi-item" tabindex="0" data-unlaunched-action title="查看未上线需求">
         <div><div class="kpi-label">综合需求上线率</div><div class="kpi-value" id="kpiSatisfaction">3%</div><div class="kpi-sub" id="kpiSatisfactionSub">已上线 <strong>2 / 79</strong></div></div>
         <div class="kpi-icon"><i data-lucide="gauge"></i></div>
       </article>
@@ -1441,6 +1441,19 @@
         .sort(compareLaunchedDate);
     }
 
+    function getUnlaunchedRequirements() {
+      const priorityRank = requirement => {
+        const rank = PRIORITY_CODES.indexOf(getPriorityCode(requirement.priority));
+        return rank === -1 ? PRIORITY_CODES.length : rank;
+      };
+      const proposerName = requirement => String(requirement.proposer || '').trim() || '未填写';
+      return getTrackedRequirements()
+        .filter(requirement => !isRequirementLaunchedByProjection(requirement))
+        .sort((left, right) => priorityRank(left) - priorityRank(right)
+          || proposerName(left).localeCompare(proposerName(right), 'zh-CN')
+          || left.row - right.row);
+    }
+
     function renderIssues() {
       const launchedRequirements = getLaunchedRequirements();
       const allRequirements = launchedRequirements;
@@ -1661,6 +1674,40 @@
     }
 
     // V2.5: 本周新增需求仅通过顶部 KPI 打开，新增日期以源表“创建时间”为准。
+    function openUnlaunchedRequirementModal() {
+      const requirements = getUnlaunchedRequirements();
+      document.getElementById('requirementModalTitle').textContent = '未上线需求';
+      document.getElementById('requirementModalSubtitle').textContent = `预期进度截至 ${state.projectionDate} · 按优先级从高到低，同优先级按提出人排序`;
+      const rows = requirements.length ? requirements.map(requirement => `
+        <tr>
+          <td><span class="cell-main">${escapeHtml(requirement.id)}</span><span class="cell-sub">Excel 第 ${requirement.row} 行</span></td>
+          <td><div class="requirement-name">${escapeHtml(requirement.name)}</div>${requirement.scenario ? `<div class="requirement-desc">${escapeHtml(requirement.scenario)}</div>` : ''}</td>
+          <td>${escapeHtml(requirement.topic)}</td>
+          <td>${escapeHtml(requirement.proposer || '未填写')}</td>
+          <td>${escapeHtml(requirement.owner)}</td>
+          <td>${priorityTag(requirement)}</td>
+          <td class="num">${escapeHtml(formatDateOnly(requirement.createdAt))}</td>
+          <td>${escapeHtml(requirement.creator || '未填写')}</td>
+          <td>${requirementStatusTag(requirement)}</td>
+        </tr>`).join('') : '<tr><td colspan="9" class="table-empty">当前筛选范围内暂无未上线需求</td></tr>';
+
+      document.getElementById('requirementModalBody').innerHTML = `
+        <div class="requirement-summary">
+          ${renderPrioritySummary('未上线需求', requirements)}
+        </div>
+        <div class="requirement-table-wrap">
+          <table class="detail requirement-table">
+            <thead><tr><th style="width:112px">需求编号</th><th style="width:360px">需求名称 / 业务场景</th><th style="width:150px">迭代主题</th><th style="width:116px">提出人</th><th style="width:120px">产品主PD</th><th style="width:88px">优先级</th><th style="width:144px">创建时间</th><th style="width:116px">创建人</th><th style="width:108px">当前状态</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div class="snapshot-note">未上线需求 = 未计入当前预期进度的需求；${escapeHtml(getDataScopeLabel())}。数据来自 ${escapeHtml(REQUIREMENT_DATA.meta.sourceFile)}。</div>`;
+      document.getElementById('requirementModalMask').classList.add('show');
+      document.body.style.overflow = 'hidden';
+      refreshIcons();
+      document.getElementById('requirementModalClose').focus();
+    }
+
     function openWeeklyNewRequirementModal() {
       const requirements = getWeeklyNewRequirements();
       document.getElementById('requirementModalTitle').textContent = '本周新增需求';
@@ -1866,12 +1913,11 @@
         });
       });
 
-      document.querySelectorAll('[data-kpi-action]').forEach(card => {
-        const activate = () => setMapFilter(card.dataset.kpiAction);
-        card.addEventListener('click', activate);
-        card.addEventListener('keydown', event => {
-          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); }
-        });
+      const unlaunchedCard = document.querySelector('[data-unlaunched-action]');
+      const showUnlaunched = () => openUnlaunchedRequirementModal();
+      unlaunchedCard.addEventListener('click', showUnlaunched);
+      unlaunchedCard.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showUnlaunched(); }
       });
 
       const weeklyCard = document.querySelector('[data-weekly-action]');
