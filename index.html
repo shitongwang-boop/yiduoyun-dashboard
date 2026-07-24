@@ -1677,11 +1677,15 @@
     function isRequirementLaunchedByProjection(requirement) {
       if (!isIncludedRequirement(requirement)) return false;
       if (isRequirementCompleted(requirement)) return true;
-      const onlineTime = getOnlineDateTimestamp(requirement.onlineDate);
-      if (!Number.isFinite(onlineTime)) return false;
+      // A future date is a delivery forecast, not a blanket scheduling assumption.
+      // Only items already in development or testing with a committed launch date count as projected complete.
+      if (!['研发中', '测试中'].includes(String(requirement.status || '').trim())) return false;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      return onlineTime > today.getTime() && onlineTime <= getProjectionTimestamp(true);
+      if (getProjectionTimestamp(false) <= today.getTime()) return false;
+      const onlineTime = getOnlineDateTimestamp(requirement.onlineDate);
+      if (!Number.isFinite(onlineTime)) return false;
+      return onlineTime <= getProjectionTimestamp(true);
     }
 
     function compareOnlineDate(left, right) {
@@ -1956,7 +1960,7 @@
             <tbody>${rows}</tbody>
           </table>
         </div>
-        <div class="snapshot-note">预期口径：实际已上线需求，加上线时间晚于今天且不晚于 ${escapeHtml(state.projectionDate)} 的需求；${escapeHtml(getDataScopeLabel())}。数据来自 ${escapeHtml(REQUIREMENT_DATA.meta.sourceFile)}。</div>`;
+        <div class="snapshot-note">预期口径：已完成状态的需求始终计入；“研发中”或“测试中”且上线时间不晚于 ${escapeHtml(state.projectionDate)} 的需求，按该日期预计完成计入；${escapeHtml(getDataScopeLabel())}。数据来自 ${escapeHtml(REQUIREMENT_DATA.meta.sourceFile)}。</div>`;
       document.getElementById('requirementModalMask').classList.add('show');
       document.body.style.overflow = 'hidden';
       initializeRequirementTableFilters();
