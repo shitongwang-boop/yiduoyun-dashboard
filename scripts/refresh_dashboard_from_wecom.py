@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
-EXCLUDED_STATUSES = {"取消", "已取消"}
+EXCLUDED_STATUSES = {"已取消"}
 
 
 def cli_call(action, params):
@@ -194,7 +194,7 @@ def build_payload(records, config, html_path):
             "sourceSha256": source_digest,
             "snapshotAt": timestamp,
             "generatedAt": timestamp,
-            "completionRule": "当前状态为已上线、已有功能已支持、已完成或问题已解决",
+            "completionRule": "当前状态为已上线、有代替方案、取消、已有功能已支持，或已完成/问题已解决",
             "priorityRule": f"数据包含优先级 {'、'.join(config['included_priority_prefixes'])}，且排除已取消需求",
             "specialAttentionRule": "是否特别关注为是",
             "unresolvedUserIds": sorted({
