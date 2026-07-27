@@ -952,12 +952,12 @@
           <table class="detail">
             <thead>
               <tr>
-                <th style="width:96px">优先级</th>
-                <th>需求名称 / 业务场景</th>
-                <th style="width:150px">迭代主题</th>
-                <th style="width:120px">产品主PD</th>
-                <th style="width:132px" id="requirementDateHeader">上线时间</th>
-                <th style="width:108px">当前状态</th>
+                <th style="width:96px"><span class="table-header-content"><span>优先级</span><button class="table-filter-btn" type="button" data-issue-filter-trigger data-filter-key="优先级" aria-label="筛选优先级" title="筛选优先级"><i data-lucide="filter"></i></button></span></th>
+                <th><span class="table-header-content"><span>需求名称 / 业务场景</span><button class="table-filter-btn" type="button" data-issue-filter-trigger data-filter-key="需求名称 / 业务场景" aria-label="筛选需求名称或业务场景" title="筛选需求名称或业务场景"><i data-lucide="filter"></i></button></span></th>
+                <th style="width:150px"><span class="table-header-content"><span>迭代主题</span><button class="table-filter-btn" type="button" data-issue-filter-trigger data-filter-key="迭代主题" aria-label="筛选迭代主题" title="筛选迭代主题"><i data-lucide="filter"></i></button></span></th>
+                <th style="width:120px"><span class="table-header-content"><span>产品主PD</span><button class="table-filter-btn" type="button" data-issue-filter-trigger data-filter-key="产品主PD" aria-label="筛选产品主PD" title="筛选产品主PD"><i data-lucide="filter"></i></button></span></th>
+                <th style="width:132px" id="requirementDateHeader"><span class="table-header-content"><span>上线时间</span><button class="table-filter-btn" type="button" data-issue-filter-trigger data-filter-key="上线时间" aria-label="筛选上线时间" title="筛选上线时间"><i data-lucide="filter"></i></button></span></th>
+                <th style="width:108px"><span class="table-header-content"><span>当前状态</span><button class="table-filter-btn" type="button" data-issue-filter-trigger data-filter-key="当前状态" aria-label="筛选当前状态" title="筛选当前状态"><i data-lucide="filter"></i></button></span></th>
               </tr>
             </thead>
             <tbody id="issueTableBody"></tbody>
@@ -1069,6 +1069,7 @@
       requirementView: 'launched',
       requirementFilter: 'all',
       selectedPriorities: ['P0', 'P1'],
+      issueTableFilters: {},
       modalFilters: {},
       upcomingPosterRequirements: [],
       domains: [
@@ -1214,6 +1215,15 @@
       ));
     }
 
+    function getIssueTableFilteredRequirements(requirements) {
+      const activeFilters = Object.entries(state.issueTableFilters)
+        .filter(([, value]) => String(value).trim());
+      if (!activeFilters.length) return requirements;
+      return requirements.filter(requirement => activeFilters.every(([label, value]) =>
+        normalizeFilterText(getRequirementFieldValue(requirement, label)).includes(normalizeFilterText(value))
+      ));
+    }
+
     function getModalFilterSummary() {
       const filters = Object.entries(state.modalFilters).filter(([, value]) => String(value).trim());
       return filters.length ? filters.map(([label, value]) => `${label}：${value}`).join('；') : '全部即将上线需求';
@@ -1277,11 +1287,14 @@
     function openColumnFilter(trigger) {
       const key = trigger.dataset.filterKey;
       if (!key) return;
+      const scope = trigger.dataset.issueFilterTrigger !== undefined ? 'issue' : 'modal';
+      const filters = scope === 'issue' ? state.issueTableFilters : state.modalFilters;
       const popover = document.getElementById('columnFilterPopover');
       const input = document.getElementById('columnFilterInput');
       document.getElementById('columnFilterLabel').textContent = `筛选：${key}`;
       input.dataset.filterKey = key;
-      input.value = state.modalFilters[key] || '';
+      input.dataset.filterScope = scope;
+      input.value = filters[key] || '';
       popover.hidden = false;
       const rect = trigger.getBoundingClientRect();
       const left = Math.min(Math.max(12, rect.left), window.innerWidth - popover.offsetWidth - 12);
@@ -1787,9 +1800,11 @@
     function renderIssues() {
       const launchedRequirements = getLaunchedRequirements();
       const allRequirements = launchedRequirements;
-      const requirements = state.requirementFilter === 'all'
+      const priorityFilteredRequirements = state.requirementFilter === 'all'
         ? allRequirements
         : allRequirements.filter(requirement => getPriorityCode(requirement.priority) === state.requirementFilter);
+      const requirements = getIssueTableFilteredRequirements(priorityFilteredRequirements);
+      const activeIssueFilters = Object.entries(state.issueTableFilters).filter(([, value]) => String(value).trim());
       const body = document.getElementById('issueTableBody');
       document.getElementById('launchedRequirementCount').textContent = launchedRequirements.length;
       document.querySelectorAll('[data-requirement-view]').forEach(tab => {
@@ -1801,12 +1816,17 @@
         button.classList.toggle('active', button.dataset.requirementFilter === state.requirementFilter);
       });
       document.getElementById('requirementTablePanel').setAttribute('aria-labelledby', 'launchedRequirementTab');
-      document.getElementById('requirementDateHeader').textContent = '上线时间';
       const todayValue = formatDateInputValue(new Date());
       const isFutureProjection = state.projectionDate > todayValue;
       const totalLabel = isFutureProjection ? '预期已上线' : '已上线';
       const sortLabel = '按上线时间从现在到过去排序';
-      document.getElementById('issueCountLabel').textContent = `${getDataScopeLabel()}；${totalLabel}共 ${allRequirements.length} 项，当前显示 ${requirements.length} 项 · ${sortLabel}`;
+      const filterLabel = activeIssueFilters.length
+        ? `；字段筛选：${activeIssueFilters.map(([key, value]) => `${key}：${value}`).join('、')}`
+        : '';
+      document.getElementById('issueCountLabel').textContent = `${getDataScopeLabel()}；${totalLabel}共 ${allRequirements.length} 项，当前显示 ${requirements.length} 项 · ${sortLabel}${filterLabel}`;
+      document.querySelectorAll('[data-issue-filter-trigger]').forEach(button => {
+        button.classList.toggle('active', Boolean(String(state.issueTableFilters[button.dataset.filterKey] || '').trim()));
+      });
       if (!requirements.length) {
         body.innerHTML = `<tr><td colspan="6" class="table-empty">当前筛选条件下暂无${totalLabel}需求</td></tr>`;
         return;
@@ -2306,23 +2326,31 @@
         const trigger = event.target.closest('[data-modal-filter-trigger]');
         if (trigger) openColumnFilter(trigger);
       });
+      document.getElementById('requirementTablePanel').addEventListener('click', event => {
+        const trigger = event.target.closest('[data-issue-filter-trigger]');
+        if (trigger) openColumnFilter(trigger);
+      });
       document.getElementById('columnFilterInput').addEventListener('input', event => {
         const key = event.target.dataset.filterKey;
         if (!key) return;
-        state.modalFilters[key] = event.target.value;
-        applyModalTableFilters();
+        const filters = event.target.dataset.filterScope === 'issue' ? state.issueTableFilters : state.modalFilters;
+        filters[key] = event.target.value;
+        if (event.target.dataset.filterScope === 'issue') renderIssues();
+        else applyModalTableFilters();
       });
       document.getElementById('columnFilterClear').addEventListener('click', () => {
         const input = document.getElementById('columnFilterInput');
         const key = input.dataset.filterKey;
         if (!key) return;
         input.value = '';
-        state.modalFilters[key] = '';
-        applyModalTableFilters();
+        const filters = input.dataset.filterScope === 'issue' ? state.issueTableFilters : state.modalFilters;
+        filters[key] = '';
+        if (input.dataset.filterScope === 'issue') renderIssues();
+        else applyModalTableFilters();
         input.focus();
       });
       document.addEventListener('click', event => {
-        if (!event.target.closest('#columnFilterPopover') && !event.target.closest('[data-modal-filter-trigger]')) closeColumnFilter();
+        if (!event.target.closest('#columnFilterPopover') && !event.target.closest('[data-modal-filter-trigger]') && !event.target.closest('[data-issue-filter-trigger]')) closeColumnFilter();
       });
       document.getElementById('proposerRankingList').addEventListener('click', event => {
         const button = event.target.closest('[data-proposer]');
