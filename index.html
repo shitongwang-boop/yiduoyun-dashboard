@@ -765,13 +765,26 @@
     .requirement-summary-value { margin-top: 2px; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
     .requirement-table-wrap { max-height: 56vh; overflow: auto; border: 1px solid var(--border); }
     .requirement-table { min-width: 1200px !important; }
-    .theme-rate-table th:nth-child(2), .theme-rate-table td:nth-child(2) { width: 160px; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .theme-rate-table th:nth-child(2), .theme-rate-table td:nth-child(2) { width: 80px; max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .theme-rate-table th:nth-child(1), .theme-rate-table td:nth-child(1) { width: 46px; max-width: 46px; padding-left: 2px; padding-right: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .theme-rate-table th:nth-child(3), .theme-rate-table td:nth-child(3),
     .theme-rate-table th:nth-child(4), .theme-rate-table td:nth-child(4),
     .theme-rate-table th:nth-child(5), .theme-rate-table td:nth-child(5) { text-align: center !important; }
+    .theme-rate-table th:nth-child(3), .theme-rate-table td:nth-child(3),
+    .theme-rate-table th:nth-child(4), .theme-rate-table td:nth-child(4) { width: 64px; max-width: 64px; padding-left: 2px; padding-right: 2px; }
+    .theme-rate-table th:nth-child(3) .table-header-content,
+    .theme-rate-table th:nth-child(4) .table-header-content,
+    .theme-rate-table th:nth-child(1) .table-header-content { gap: 0; }
     .theme-detail-trigger { max-width: 100%; padding: 0; border: 0; background: transparent; color: var(--primary); font: inherit; font-weight: 700; text-align: left; cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .theme-detail-trigger:hover { color: var(--primary-hover); text-decoration: underline; }
     .theme-detail-trigger:focus-visible { outline: 2px solid var(--primary-border); outline-offset: 2px; border-radius: 2px; }
+    .theme-detail-drawer { position: fixed; top: 0; right: 0; z-index: 100; width: min(540px, 94vw); height: 100vh; background: var(--bg-surface); box-shadow: var(--shadow-lg); transform: translateX(100%); transition: transform 0.2s ease; display: flex; flex-direction: column; }
+    .theme-detail-drawer.show { transform: translateX(0); }
+    .theme-detail-drawer .drawer-body { min-height: 0; padding: 12px 16px 20px; }
+    .theme-detail-drawer .requirement-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .theme-detail-drawer .requirement-summary-item { min-width: 0; padding: 8px; }
+    .theme-detail-drawer .requirement-summary-value { font-size: 20px; }
+    .theme-detail-drawer .requirement-table { min-width: 860px !important; }
     .requirement-name { font-weight: 700; }
     .requirement-desc { margin-top: 2px; color: var(--text-3); line-height: 18px; white-space: normal; }
     .weekly-requirement-table tbody tr { height: 64px; }
@@ -855,7 +868,7 @@
 
     @media print {
       body { background: #FFFFFF; }
-      .app-header, .filter-group, .flow-tip, .btn, .drawer, .drawer-mask, .issue-modal-mask, .toast-wrap { display: none !important; }
+      .app-header, .filter-group, .flow-tip, .btn, .drawer, .drawer-mask, .theme-detail-drawer, .issue-modal-mask, .toast-wrap { display: none !important; }
       .page { width: 100%; max-width: none; padding: 0; }
       .decision-banner, .card, .kpi-item { break-inside: avoid; box-shadow: none; }
       .flow-scroll, .table-wrap { overflow: visible; }
@@ -1028,6 +1041,11 @@
     </div>
   </div>
 
+  <aside class="theme-detail-drawer" id="themeDetailDrawer" role="dialog" aria-labelledby="themeDetailDrawerTitle">
+    <div class="drawer-header"><div><div class="drawer-title" id="themeDetailDrawerTitle">迭代主题需求明细</div><div class="drawer-subtitle" id="themeDetailDrawerSubtitle"></div></div><button class="icon-btn" id="themeDetailDrawerClose" title="关闭主题明细"><i data-lucide="x"></i></button></div>
+    <div class="drawer-body" id="themeDetailDrawerBody"></div>
+  </aside>
+
   <div class="column-filter-popover" id="columnFilterPopover" hidden>
     <div class="column-filter-label" id="columnFilterLabel">筛选字段</div>
     <div class="column-filter-row"><input class="column-filter-input" id="columnFilterInput" type="search" autocomplete="off" placeholder="输入关键词模糊筛选"><button class="btn btn-sm" id="columnFilterClear" type="button">清空</button></div>
@@ -1088,7 +1106,9 @@
       selectedPriorities: ['P0', 'P1'],
       issueTableFilters: {},
       modalFilters: {},
+      themeDrawerFilters: {},
       proposerTableFilters: {},
+      themeDrawerTrigger: null,
       upcomingPosterRequirements: [],
       domains: [
         {
@@ -1272,15 +1292,16 @@
       closeColumnFilter();
     }
 
-    function initializeRequirementTableFilters() {
-      const table = document.querySelector('#requirementModalBody .requirement-table');
+    function initializeRequirementTableFilters(containerSelector = '#requirementModalBody', scope = 'modal') {
+      const table = document.querySelector(`${containerSelector} .requirement-table`);
       if (!table || !table.tHead || !table.tBodies.length) return;
+      const triggerAttribute = scope === 'themeDrawer' ? 'data-theme-drawer-filter-trigger' : 'data-modal-filter-trigger';
       const headers = Array.from(table.tHead.rows[0].cells);
       headers.forEach((header, index) => {
         const label = header.textContent.trim();
         if (!label) return;
         header.dataset.filterKey = label;
-        header.innerHTML = `<span class="table-header-content"><span>${escapeHtml(label)}</span><button class="table-filter-btn" type="button" data-modal-filter-trigger data-filter-key="${escapeHtml(label)}" aria-label="筛选${escapeHtml(label)}" title="筛选${escapeHtml(label)}"><i data-lucide="filter"></i></button></span>`;
+        header.innerHTML = `<span class="table-header-content"><span>${escapeHtml(label)}</span><button class="table-filter-btn" type="button" ${triggerAttribute} data-filter-key="${escapeHtml(label)}" aria-label="筛选${escapeHtml(label)}" title="筛选${escapeHtml(label)}"><i data-lucide="filter"></i></button></span>`;
         Array.from(table.tBodies[0].rows).forEach(row => {
           if (row.cells.length === 1 && row.cells[0].colSpan > 1) {
             row.dataset.filterEmpty = 'true';
@@ -1292,7 +1313,7 @@
       });
       const status = document.createElement('div');
       status.className = 'table-filter-status';
-      status.id = 'tableFilterStatus';
+      status.id = scope === 'themeDrawer' ? 'themeDrawerFilterStatus' : 'tableFilterStatus';
       status.hidden = true;
       table.parentElement.before(status);
     }
@@ -1320,11 +1341,34 @@
       status.innerHTML = activeFilters.length ? `已筛选 <strong>${visible}</strong> / ${total} 项 · ${activeFilters.map(([key, value]) => `${escapeHtml(key)}：${escapeHtml(value)}`).join('；')}` : '';
     }
 
+    function applyThemeDrawerTableFilters() {
+      const table = document.querySelector('#themeDetailDrawerBody .requirement-table');
+      if (!table || !table.tBodies.length) return;
+      const activeFilters = Object.entries(state.themeDrawerFilters).filter(([, value]) => String(value).trim());
+      let total = 0;
+      let visible = 0;
+      Array.from(table.tBodies[0].rows).forEach(row => {
+        if (row.dataset.filterEmpty === 'true') return;
+        total += 1;
+        const matched = activeFilters.every(([key, value]) => {
+          const cell = Array.from(row.cells).find(item => item.dataset.filterKey === key);
+          return normalizeFilterText(cell?.textContent).includes(normalizeFilterText(value));
+        });
+        row.hidden = !matched;
+        if (matched) visible += 1;
+      });
+      document.querySelectorAll('[data-theme-drawer-filter-trigger]').forEach(button => button.classList.toggle('active', Boolean(String(state.themeDrawerFilters[button.dataset.filterKey] || '').trim())));
+      const status = document.getElementById('themeDrawerFilterStatus');
+      if (!status) return;
+      status.hidden = !activeFilters.length;
+      status.innerHTML = activeFilters.length ? `已筛选 <strong>${visible}</strong> / ${total} 项 · ${activeFilters.map(([key, value]) => `${escapeHtml(key)}：${escapeHtml(value)}`).join('；')}` : '';
+    }
+
     function openColumnFilter(trigger) {
       const key = trigger.dataset.filterKey;
       if (!key) return;
-      const scope = trigger.dataset.proposerFilterTrigger !== undefined ? 'proposer' : (trigger.dataset.issueFilterTrigger !== undefined ? 'issue' : 'modal');
-      const filters = scope === 'issue' ? state.issueTableFilters : (scope === 'proposer' ? state.proposerTableFilters : state.modalFilters);
+      const scope = trigger.dataset.themeDrawerFilterTrigger !== undefined ? 'themeDrawer' : (trigger.dataset.proposerFilterTrigger !== undefined ? 'proposer' : (trigger.dataset.issueFilterTrigger !== undefined ? 'issue' : 'modal'));
+      const filters = scope === 'themeDrawer' ? state.themeDrawerFilters : (scope === 'issue' ? state.issueTableFilters : (scope === 'proposer' ? state.proposerTableFilters : state.modalFilters));
       const popover = document.getElementById('columnFilterPopover');
       const input = document.getElementById('columnFilterInput');
       document.getElementById('columnFilterLabel').textContent = `筛选：${key}`;
@@ -2141,11 +2185,11 @@
       document.getElementById('requirementModalClose').focus();
     }
 
-    function openIterationThemeRequirementModal(name) {
+    function openIterationThemeRequirementDrawer(name) {
       const topic = getProjectedRequirementTopic(name);
-      configureRequirementModal();
-      document.getElementById('requirementModalTitle').textContent = `${name} · 需求明细`;
-      document.getElementById('requirementModalSubtitle').textContent = `预期进度截至 ${state.projectionDate} · ${getDataScopeLabel()}`;
+      state.themeDrawerFilters = {};
+      state.themeDrawerTrigger = document.activeElement;
+      closeColumnFilter();
       const rows = topic.requirements.length ? topic.requirements.map(requirement => `
         <tr>
           <td><span class="cell-main">${escapeHtml(requirement.id)}</span><span class="cell-sub">Excel 第 ${requirement.row} 行</span></td>
@@ -2153,9 +2197,12 @@
           <td>${requirementStatusTag(requirement)}</td>
           <td class="num">${escapeHtml(requirement.onlineDate || '-')}</td>
           <td>${priorityTag(requirement)}</td>
+          <td>${escapeHtml(requirement.proposer || '未填写')}</td>
           <td>${escapeHtml(requirement.owner || '未填写')}</td>
-        </tr>`).join('') : '<tr><td colspan="6" class="table-empty">当前筛选范围内暂无该迭代主题需求</td></tr>';
-      document.getElementById('requirementModalBody').innerHTML = `
+        </tr>`).join('') : '<tr><td colspan="7" class="table-empty">当前筛选范围内暂无该迭代主题需求</td></tr>';
+      document.getElementById('themeDetailDrawerTitle').textContent = `${name} · 需求明细`;
+      document.getElementById('themeDetailDrawerSubtitle').textContent = `预期进度截至 ${state.projectionDate} · ${getDataScopeLabel()}`;
+      document.getElementById('themeDetailDrawerBody').innerHTML = `
         <div class="requirement-summary">
           <div class="requirement-summary-item"><div class="requirement-summary-label">需求总数</div><div class="requirement-summary-value">${topic.total}</div></div>
           <div class="requirement-summary-item"><div class="requirement-summary-label">已上线</div><div class="requirement-summary-value" style="color:var(--success)">${topic.done}</div></div>
@@ -2163,16 +2210,22 @@
         </div>
         <div class="requirement-table-wrap">
           <table class="detail requirement-table">
-            <thead><tr><th style="width:112px">需求编号</th><th>需求名称 / 业务场景</th><th style="width:108px">当前状态</th><th style="width:126px">预计上线时间</th><th style="width:88px">优先级</th><th style="width:120px">产品主PD</th></tr></thead>
+            <thead><tr><th style="width:112px">需求编号</th><th>需求名称 / 业务场景</th><th style="width:108px">当前状态</th><th style="width:126px">预计上线时间</th><th style="width:88px">优先级</th><th style="width:116px">提出人</th><th style="width:120px">产品主PD</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
         <div class="snapshot-note">已上线 = 已纳入当前预期进度的需求；${escapeHtml(getDataScopeLabel())}。数据来自 ${escapeHtml(REQUIREMENT_DATA.meta.sourceFile)}。</div>`;
-      document.getElementById('requirementModalMask').classList.add('show');
-      document.body.style.overflow = 'hidden';
-      initializeRequirementTableFilters();
+      document.getElementById('themeDetailDrawer').classList.add('show');
+      initializeRequirementTableFilters('#themeDetailDrawerBody', 'themeDrawer');
       refreshIcons();
-      document.getElementById('requirementModalClose').focus();
+      document.getElementById('themeDetailDrawerClose').focus();
+    }
+
+    function closeIterationThemeRequirementDrawer(restoreFocus = true) {
+      document.getElementById('themeDetailDrawer').classList.remove('show');
+      closeColumnFilter();
+      if (restoreFocus && state.themeDrawerTrigger?.isConnected) state.themeDrawerTrigger.focus();
+      state.themeDrawerTrigger = null;
     }
 
     // V2.7: 主题弹窗按业务环节展示；重点关注仅通过 KPI 查看。
@@ -2208,7 +2261,7 @@
         </div>
         <div class="requirement-table-wrap">
           <table class="detail requirement-table theme-rate-table">
-            <thead><tr><th style="width:136px">环节</th><th style="width:160px">迭代主题</th><th style="width:128px">需求总数</th><th style="width:128px">已上线</th><th style="width:112px">上线率</th></tr></thead>
+            <thead><tr><th style="width:46px">环节</th><th style="width:80px">迭代主题</th><th style="width:64px">需求总数</th><th style="width:64px">已上线</th><th style="width:112px">上线率</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -2255,6 +2308,7 @@
     }
 
     function closeRequirementModal() {
+      closeIterationThemeRequirementDrawer(false);
       closeColumnFilter();
       document.getElementById('requirementModalMask').classList.remove('show');
       document.body.style.overflow = document.getElementById('domainDrawer').classList.contains('show') ? 'hidden' : '';
@@ -2399,10 +2453,15 @@
       document.getElementById('requirementModalBody').addEventListener('click', event => {
         const themeTrigger = event.target.closest('[data-theme-detail]');
         if (themeTrigger) {
-          openIterationThemeRequirementModal(themeTrigger.dataset.themeDetail);
+          openIterationThemeRequirementDrawer(themeTrigger.dataset.themeDetail);
           return;
         }
         const trigger = event.target.closest('[data-modal-filter-trigger]');
+        if (trigger) openColumnFilter(trigger);
+      });
+      document.getElementById('themeDetailDrawerClose').addEventListener('click', () => closeIterationThemeRequirementDrawer());
+      document.getElementById('themeDetailDrawerBody').addEventListener('click', event => {
+        const trigger = event.target.closest('[data-theme-drawer-filter-trigger]');
         if (trigger) openColumnFilter(trigger);
       });
       document.getElementById('requirementTablePanel').addEventListener('click', event => {
@@ -2417,9 +2476,10 @@
         const key = event.target.dataset.filterKey;
         if (!key) return;
         const scope = event.target.dataset.filterScope;
-        const filters = scope === 'issue' ? state.issueTableFilters : (scope === 'proposer' ? state.proposerTableFilters : state.modalFilters);
+        const filters = scope === 'themeDrawer' ? state.themeDrawerFilters : (scope === 'issue' ? state.issueTableFilters : (scope === 'proposer' ? state.proposerTableFilters : state.modalFilters));
         filters[key] = event.target.value;
-        if (scope === 'issue') renderIssues();
+        if (scope === 'themeDrawer') applyThemeDrawerTableFilters();
+        else if (scope === 'issue') renderIssues();
         else if (scope === 'proposer') renderProposerRanking();
         else applyModalTableFilters();
       });
@@ -2429,15 +2489,16 @@
         if (!key) return;
         input.value = '';
         const scope = input.dataset.filterScope;
-        const filters = scope === 'issue' ? state.issueTableFilters : (scope === 'proposer' ? state.proposerTableFilters : state.modalFilters);
+        const filters = scope === 'themeDrawer' ? state.themeDrawerFilters : (scope === 'issue' ? state.issueTableFilters : (scope === 'proposer' ? state.proposerTableFilters : state.modalFilters));
         filters[key] = '';
-        if (scope === 'issue') renderIssues();
+        if (scope === 'themeDrawer') applyThemeDrawerTableFilters();
+        else if (scope === 'issue') renderIssues();
         else if (scope === 'proposer') renderProposerRanking();
         else applyModalTableFilters();
         input.focus();
       });
       document.addEventListener('click', event => {
-        if (!event.target.closest('#columnFilterPopover') && !event.target.closest('[data-modal-filter-trigger]') && !event.target.closest('[data-issue-filter-trigger]') && !event.target.closest('[data-proposer-filter-trigger]')) closeColumnFilter();
+        if (!event.target.closest('#columnFilterPopover') && !event.target.closest('[data-modal-filter-trigger]') && !event.target.closest('[data-theme-drawer-filter-trigger]') && !event.target.closest('[data-issue-filter-trigger]') && !event.target.closest('[data-proposer-filter-trigger]')) closeColumnFilter();
       });
       document.getElementById('proposerRankingList').addEventListener('click', event => {
         const button = event.target.closest('[data-proposer]');
@@ -2458,7 +2519,8 @@
 
       document.addEventListener('keydown', event => {
         if (event.key === 'Escape') {
-          if (document.getElementById('requirementModalMask').classList.contains('show')) closeRequirementModal();
+          if (document.getElementById('themeDetailDrawer').classList.contains('show')) closeIterationThemeRequirementDrawer();
+          else if (document.getElementById('requirementModalMask').classList.contains('show')) closeRequirementModal();
           else if (document.getElementById('issueModalMask').classList.contains('show')) closeIssueModal();
           else if (document.getElementById('domainDrawer').classList.contains('show')) closeDrawer();
         }
