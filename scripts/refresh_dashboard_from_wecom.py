@@ -81,6 +81,28 @@ def timestamp_text(value, with_time):
     return f"{date_part} {value.hour:02d}:{value.minute:02d}" if with_time else date_part
 
 
+def date_value(value):
+    if value in (None, "", "-"):
+        return None
+    try:
+        return datetime.fromtimestamp(int(float(value)) / 1000, SHANGHAI).date()
+    except (TypeError, ValueError, OSError):
+        text = display_text(value)
+    for pattern in ("%Y-%m-%d", "%Y/%m/%d", "%Y年%m月%d日"):
+        try:
+            return datetime.strptime(text, pattern).date()
+        except ValueError:
+            continue
+    return None
+
+
+def is_requirement_done(status, online_date, done_statuses, as_of_date):
+    if status in done_statuses:
+        return True
+    expected_online_date = date_value(online_date)
+    return status == "研发中" and expected_online_date is not None and expected_online_date <= as_of_date
+
+
 def embedded_requirements(html_path):
     html = html_path.read_text(encoding="utf-8") if html_path.exists() else ""
     match = re.search(r"const REQUIREMENT_DATA = (.*?);\n    // REQUIREMENT_DATA_END", html, re.DOTALL)
@@ -128,7 +150,7 @@ def user_display(value, fallback, lookup):
     return fallback or "未填写"
 
 
-def normalize_record(record, source_index, legacy, user_lookup, done_statuses):
+def normalize_record(record, source_index, legacy, user_lookup, done_statuses, as_of_date):
     values = record.get("values", {})
     requirement_id = get_requirement_id(values) or f"ROW-{source_index + 1}"
     previous = legacy.get(requirement_id, {})
@@ -141,7 +163,7 @@ def normalize_record(record, source_index, legacy, user_lookup, done_statuses):
         "id": requirement_id,
         "name": display_text(values.get("需求名称")) or "未命名需求",
         "status": status,
-        "done": status in done_statuses,
+        "done": is_requirement_done(status, values.get("上线时间"), done_statuses, as_of_date),
         "priority": priority,
         "owner": owner,
         "department": display_text(values.get("提出部门")) or "-",
@@ -168,7 +190,11 @@ def build_payload(records, config, html_path):
         raise RuntimeError(f"业务需求收集表缺少必填字段：{', '.join(sorted(missing))}")
     legacy = embedded_requirements(html_path)
     user_lookup = build_user_name_lookup(records, legacy)
-    normalized = [normalize_record(record, index, legacy, user_lookup, set(config["done_statuses"])) for index, record in enumerate(records)]
+    as_of_date = datetime.now(SHANGHAI).date()
+    normalized = [
+        normalize_record(record, index, legacy, user_lookup, set(config["done_statuses"]), as_of_date)
+        for index, record in enumerate(records)
+    ]
     topics = {}
     for display_name, source_names in config["topics"].items():
         aliases = set(source_names)
@@ -194,7 +220,7 @@ def build_payload(records, config, html_path):
             "sourceSha256": source_digest,
             "snapshotAt": timestamp,
             "generatedAt": timestamp,
-            "completionRule": "当前状态为暂缓、已上线、有代替方案、取消或已有功能已支持",
+            "completionRule": "当前状态为暂缓、已上线、有代替方案、取消或已有功能已支持；或当前状态为研发中且预计上线时间不晚于数据快照当天",
             "priorityRule": f"数据包含优先级 {'、'.join(config['included_priority_prefixes'])}，且排除已取消需求",
             "specialAttentionRule": "是否特别关注为是",
             "unresolvedUserIds": sorted({
