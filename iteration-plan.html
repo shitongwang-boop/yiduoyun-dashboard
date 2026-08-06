@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>一朵云项目迭代规划</title>
+  <style>
+    :root {
+      --primary: #2B66FF;
+      --primary-hover: #1B52E5;
+      --primary-active: #1142C7;
+      --primary-bg: #F1F4FF;
+      --primary-border: #A2CBFF;
+      --link: #2B66FF;
+      --success: #1BA77D;
+      --success-bg: #EDF8F1;
+      --success-border: #77CB71;
+      --info: #4D82FF;
+      --info-bg: #F1F4FF;
+      --info-border: #A2CBFF;
+      --danger: #F2242E;
+      --danger-bg: #FEF4F4;
+      --danger-border: #FCDEDE;
+      --warn: #FF9305;
+      --warn-text: #E07204;
+      --warn-bg: #FFFBEB;
+      --warn-border: #F69A4E;
+      --important-bg: #FFFAE0;
+      /* New category colors must remain distinct from the full palette and keep text contrast at 4.5:1 or higher. */
+      --funds: #1769A8;
+      --funds-bg: #E3F2F8;
+      --funds-border: #8EB9D8;
+      --report: #5B6F8A;
+      --report-bg: #F2F4FA;
+      --report-border: #D5DAE5;
+      --master-data: #966000;
+      --master-data-bg: #FAF0DA;
+      --master-data-border: #D9B77C;
+      --order-flow: #607228;
+      --order-flow-bg: #F4F7EA;
+      --order-flow-border: #BBCB8C;
+      --fulfillment: #A43F48;
+      --fulfillment-bg: #F9E4E6;
+      --fulfillment-border: #E2A6AC;
+      --gate: #13795B;
+      --gate-bg: #EDF8F1;
+      --gate-border: #77CB71;
+      --contract-service: #A0B51D;
+      --contract-service-text: #586700;
+      --contract-service-bg: #F7F9E6;
+      --contract-service-border: #C9D46D;
+      --settlement-invoice: #00B8D9;
+      --settlement-invoice-text: #006878;
+      --settlement-invoice-bg: #E8FAFC;
+      --settlement-invoice-border: #78DCE8;
+      --text-1: #11131A;
+      --text-2: #3A3F4D;
+      --text-3: #6C7280;
+      --text-4: #A8AFBF;
+      --text-inverse: #FFFFFF;
+      --border-strong: #D5DAE5;
+      --border: #E6EAF2;
+      --bg-disabled-fill: #F2F4FA;
+      --bg-page: #FBFAFD;
+      --bg-row-readonly: #EAF1F2;
+      --bg-surface: #FFFFFF;
+      --bg-table-header: #F2F4FA;
+      --bg-row-hover: #F2F4FA;
+      --bg-row-selected: #E4EDFF;
+      --radius-sm: 2px;
+      --radius: 4px;
+      --radius-lg: 6px;
+      --shadow-sm: 0 1px 2px rgba(17, 19, 26, 0.04);
+      --shadow: 0 2px 8px rgba(17, 19, 26, 0.06);
+      --shadow-lg: 0 4px 16px rgba(17, 19, 26, 0.08);
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 12px;
+      --space-lg: 16px;
+      --space-xl: 24px;
+      --space-2xl: 32px;
+      --left-column: 360px;
+      --timeline-min: 880px;
+      --row-height: 54px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100%;
+      background: var(--bg-page);
+      color: var(--text-1);
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont,
+        "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB",
+        "Microsoft YaHei", STHeiti, SimSun, sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html { height: 100%; }
+    body {
+      height: 100vh;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    button, input { font: inherit; letter-spacing: 0; }
+    button:focus-visible, [tabindex]:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .app-header {
+      min-height: 56px;
+      padding: 8px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 60;
+    }
+
+    .brand, .toolbar, .save-state, .banner-main, .legend,
+    .selection-main, .selection-dates, .range-meta {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand { gap: 10px; min-width: 0; }
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: var(--text-inverse);
+    }
+    .brand-mark svg { width: 18px; height: 18px; }
+    .brand-title { font-size: 14px; line-height: 20px; font-weight: 700; }
+    .brand-subtitle { color: var(--text-3); line-height: 18px; }
+
+    .toolbar { gap: 8px; flex: 0 0 auto; }
+    .save-state { gap: 5px; color: var(--text-3); margin-right: 4px; white-space: nowrap; }
+    .save-state svg { width: 14px; height: 14px; color: var(--success); }
+
+    .btn, .icon-btn {
+      height: 28px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      color: var(--text-2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn { padding: 0 14px; }
+    .icon-btn { width: 28px; padding: 0; }
+    .btn:hover, .icon-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+    .btn:active, .icon-btn:active { color: var(--primary-active); }
+    .btn:disabled, .icon-btn:disabled { cursor: not-allowed; background: var(--bg-disabled-fill); color: var(--text-4); border-color: var(--border); }
+    .btn svg, .icon-btn svg { width: 14px; height: 14px; }
+    .icon-fallback { font-size: 14px; line-height: 1; }
+    .icon-btn:has(svg) .icon-fallback, .btn:has(svg) .icon-fallback { display: none; }
+
+    .page {
+      width: 100%;
+      min-height: 0;
+      margin: 0;
+      padding: 12px 8px 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .scope-banner {
+      min-height: 46px;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--warn-border);
+      border-left: 4px solid var(--warn);
+      border-radius: var(--radius);
+      background: var(--warn-bg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .banner-main { gap: 10px; min-width: 0; }
+    .banner-icon { width: 16px; height: 16px; color: var(--warn-text); flex: 0 0 auto; }
+    .banner-copy { color: var(--text-2); }
+    .banner-copy strong { color: var(--text-1); font-weight: 700; }
+    .scope-stats { display: flex; gap: 18px; flex: 0 0 auto; }
+    .scope-stat { color: var(--text-3); white-space: nowrap; }
+    .scope-stat strong { display: block; color: var(--text-1); font-size: 14px; line-height: 18px; font-weight: 700; }
+    .scope-stat.p0 strong { color: var(--danger); }
+
+    .planner {
+      flex: 1 1 auto;
+      min-height: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .planner-head {
+      min-height: 44px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .planner-title { font-size: 14px; font-weight: 700; }
+    .range-meta { gap: 8px; color: var(--text-3); }
+    .range-meta strong { color: var(--text-2); font-weight: 700; }
+    .legend { gap: 12px; flex-wrap: wrap; color: var(--text-3); }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .legend-line { width: 18px; height: 6px; border-radius: var(--radius-sm); background: var(--primary); }
+    .legend-line.plan { background: var(--warn); }
+    .legend-line.funds { background: var(--funds); }
+    .legend-line.reports { background: var(--report); }
+    .legend-line.master-data { background: var(--master-data); }
+    .legend-line.order-flow { background: var(--order-flow); }
+    .legend-line.fulfillment { background: var(--fulfillment); }
+    .legend-line.gate { background: var(--gate); }
+    .legend-line.contract-service { background: var(--contract-service); }
+    .legend-line.settlement-invoice { background: var(--settlement-invoice); }
+
+    .gantt-scroll {
+      width: 100%;
+      min-height: 0;
+      flex: 1 1 auto;
+      overflow: auto;
+      scrollbar-gutter: stable;
+    }
+    .gantt-board { min-width: calc(var(--left-column) + var(--timeline-min)); }
+
+    .board-header, .gantt-row {
+      display: grid;
+      grid-template-columns: var(--left-column) minmax(var(--timeline-min), 1fr);
+    }
+
+    .board-header {
+      min-height: 58px;
+      border-bottom: 1px solid var(--border-strong);
+      background: var(--bg-table-header);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .left-header {
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-right: 1px solid var(--border-strong);
+      color: var(--text-2);
+      font-weight: 700;
+      position: sticky;
+      left: 0;
+      z-index: 35;
+      background: var(--bg-table-header);
+    }
+    .left-header-meta { color: var(--text-3); font-weight: 400; }
+
+    .timeline-header { position: relative; min-height: 58px; }
+    .month-grid, .week-grid {
+      display: grid;
+      grid-template-columns: repeat(55, minmax(0, 1fr));
+      position: absolute;
+      inset-inline: 0;
+    }
+    .month-grid { top: 0; height: 27px; border-bottom: 1px solid var(--border); }
+    .week-grid { top: 27px; bottom: 0; }
+    .month-segment, .week-segment {
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      border-right: 1px solid var(--border-strong);
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .month-segment { justify-content: center; font-weight: 700; }
+    .week-segment { color: var(--text-3); border-right-color: var(--border); }
+    .month-segment:last-child, .week-segment:last-child { border-right: 0; }
+
+    .gantt-row {
+      min-height: var(--row-height);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+      position: relative;
+    }
+    .gantt-row:last-child { border-bottom: 0; }
+    .gantt-row:hover { background: var(--bg-row-hover); }
+    .gantt-row.selected { background: var(--primary-bg); }
+    .gantt-row.dragging { opacity: 0.42; }
+    .gantt-row.drop-before { box-shadow: inset 0 2px 0 var(--primary); }
+
+    .iteration-cell {
+      min-width: 0;
+      min-height: var(--row-height);
+      padding: 8px 10px 8px 6px;
+      border-right: 1px solid var(--border-strong);
+      display: grid;
+      grid-template-columns: 28px 52px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      position: sticky;
+      left: 0;
+      z-index: 12;
+      background: inherit;
+    }
+    .drag-handle {
+      width: 28px;
+      height: 32px;
+      border: 0;
+      background: transparent;
+      color: var(--text-4);
+      cursor: grab;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+    }
+    .drag-handle:hover { color: var(--primary); background: var(--primary-bg); }
+    .drag-handle:active { cursor: grabbing; }
+    .drag-handle svg { width: 16px; height: 16px; }
+    .drag-handle::before { content: "\22EE"; letter-spacing: 0; }
+    .drag-handle:has(svg)::before { display: none; }
+
+    .iteration-code {
+      width: 52px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-sm);
+      background: var(--primary-bg);
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .iteration-code.plan { color: var(--warn-text); background: var(--warn-bg); }
+    .iteration-code.funds { color: var(--funds); background: var(--funds-bg); border: 1px solid var(--funds-border); }
+    .iteration-code.reports { color: var(--report); background: var(--report-bg); border: 1px solid var(--report-border); }
+    .iteration-code.master-data { color: var(--master-data); background: var(--master-data-bg); border: 1px solid var(--master-data-border); }
+    .iteration-code.order-flow { color: var(--order-flow); background: var(--order-flow-bg); border: 1px solid var(--order-flow-border); }
+    .iteration-code.fulfillment { color: var(--fulfillment); background: var(--fulfillment-bg); border: 1px solid var(--fulfillment-border); }
+    .iteration-code.gate { color: var(--gate); background: var(--gate-bg); border: 1px solid var(--gate-border); }
+    .iteration-code.contract-service { color: var(--contract-service-text); background: var(--contract-service-bg); border: 1px solid var(--contract-service-border); }
+    .iteration-code.settlement-invoice { color: var(--settlement-invoice-text); background: var(--settlement-invoice-bg); border: 1px solid var(--settlement-invoice-border); }
+    .iteration-copy { min-width: 0; }
+    .iteration-title { color: var(--text-1); font-size: 14px; line-height: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .iteration-topics { color: var(--text-3); line-height: 18px; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+    .iteration-topics-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .development-badge {
+      height: 18px;
+      padding: 0 4px;
+      border: 1px solid var(--primary-border);
+      border-radius: var(--radius-sm);
+      background: var(--primary-bg);
+      color: var(--primary);
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+      font-weight: 700;
+      line-height: 16px;
+    }
+
+    .timeline-track {
+      min-height: var(--row-height);
+      position: relative;
+      overflow: hidden;
+    }
+    .day-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(55, minmax(0, 1fr));
+      pointer-events: none;
+    }
+    .day-cell { border-right: 1px solid var(--border); }
+    .day-cell.weekend { background: var(--bg-disabled-fill); }
+    .day-cell.week-boundary { border-right-color: var(--border-strong); }
+    .day-cell:last-child { border-right: 0; }
+    .goal-line {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--success);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    .release-window {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: var(--success-bg);
+      border-left: 1px solid var(--success-border);
+      pointer-events: none;
+      opacity: 0.7;
+      z-index: 2;
+    }
+    .release-window.launch { border-right: 1px solid var(--success-border); }
+
+    .task-bar {
+      position: absolute;
+      top: 50%;
+      height: 30px;
+      min-width: 22px;
+      transform: translateY(-50%);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: var(--text-inverse);
+      display: grid;
+      grid-template-columns: 9px minmax(0, 1fr) 9px;
+      align-items: stretch;
+      cursor: grab;
+      touch-action: none;
+      box-shadow: var(--shadow-sm);
+      z-index: 5;
+      user-select: none;
+    }
+    .task-bar:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+    .task-bar.plan { background: var(--warn); border-color: var(--warn); color: var(--text-1); }
+    .task-bar.funds { background: var(--funds); border-color: var(--funds); color: var(--text-inverse); }
+    .task-bar.reports { background: var(--report); border-color: var(--report); color: var(--text-inverse); }
+    .task-bar.master-data { background: var(--master-data); border-color: var(--master-data); color: var(--text-inverse); }
+    .task-bar.order-flow { background: var(--order-flow); border-color: var(--order-flow); color: var(--text-inverse); }
+    .task-bar.fulfillment { background: var(--fulfillment); border-color: var(--fulfillment); color: var(--text-inverse); }
+    .task-bar.gate { background: var(--gate); border-color: var(--gate); color: var(--text-inverse); }
+    .task-bar.contract-service { background: var(--contract-service); border-color: var(--contract-service); color: var(--text-1); }
+    .task-bar.settlement-invoice { background: var(--settlement-invoice); border-color: var(--settlement-invoice); color: var(--text-1); }
+    .task-bar.active { outline: 2px solid var(--text-1); outline-offset: 2px; z-index: 8; }
+    .task-bar.moving { cursor: grabbing; box-shadow: var(--shadow); }
+    .bar-label {
+      min-width: 0;
+      padding: 0 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 700;
+      pointer-events: none;
+    }
+    .resize-handle {
+      width: 9px;
+      min-width: 9px;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: currentColor;
+      cursor: ew-resize;
+      touch-action: none;
+      position: relative;
+    }
+    .resize-handle::after {
+      content: "";
+      position: absolute;
+      top: 7px;
+      bottom: 7px;
+      left: 4px;
+      width: 1px;
+      background: currentColor;
+      opacity: 0.75;
+    }
+
+    .selection-bar {
+      min-height: 44px;
+      padding: 7px 12px;
+      border-top: 1px solid var(--border-strong);
+      background: var(--bg-table-header);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .selection-main { gap: 8px; min-width: 0; }
+    .selection-code { color: var(--primary); font-weight: 700; }
+    .selection-title { color: var(--text-1); font-weight: 700; white-space: nowrap; }
+    .selection-topics { color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .selection-dates { gap: 8px; flex: 0 0 auto; }
+    .date-field { display: flex; align-items: center; gap: 5px; color: var(--text-3); }
+    .date-input {
+      width: 126px;
+      height: 28px;
+      padding: 0 8px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      color: var(--text-1);
+    }
+    .date-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-bg); }
+    .duration { min-width: 54px; color: var(--text-2); text-align: right; }
+
+    .toast-wrap {
+      position: fixed;
+      top: 68px;
+      right: 24px;
+      z-index: 100;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      min-width: 260px;
+      max-width: 360px;
+      padding: 9px 12px;
+      border: 1px solid var(--info-border);
+      border-left: 3px solid var(--info);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      color: var(--text-1);
+      box-shadow: var(--shadow-lg);
+      animation: toast-in 0.18s ease-out;
+    }
+    .toast.success { border-color: var(--success-border); border-left-color: var(--success); }
+    .toast.warn { border-color: var(--warn-border); border-left-color: var(--warn); }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    body.is-adjusting { cursor: ew-resize; user-select: none; }
+
+    @media (max-width: 900px) {
+      .app-header { padding-inline: 12px; align-items: flex-start; flex-wrap: wrap; }
+      .toolbar { width: 100%; justify-content: flex-end; }
+      .page { padding-inline: 8px; }
+      .scope-banner { align-items: flex-start; flex-direction: column; }
+      .scope-stats { width: 100%; justify-content: flex-end; }
+      .planner-head { align-items: flex-start; flex-direction: column; }
+      .selection-bar { align-items: flex-start; flex-direction: column; }
+      .selection-dates { width: 100%; flex-wrap: wrap; }
+      .selection-main { width: 100%; }
+      .save-state { margin-right: auto; }
+    }
+
+    @media (max-width: 520px) {
+      .brand-subtitle, .btn-text { display: none; }
+      .toolbar { justify-content: flex-start; }
+      .scope-stats { justify-content: flex-start; }
+      .scope-stat { flex: 1 1 0; }
+      .legend { gap: 8px; }
+      .date-field { width: 100%; justify-content: space-between; }
+      .date-input { flex: 1 1 auto; width: auto; }
+      .duration { text-align: left; }
+      .toast-wrap { left: 8px; right: 8px; top: 104px; }
+      .toast { min-width: 0; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><i data-lucide="calendar-range"></i></div>
+      <div>
+        <div class="brand-title">一朵云项目迭代规划</div>
+        <div class="brand-subtitle">目标 2026-09-30 正式落地</div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="save-state" id="saveState"><i data-lucide="cloud-check"></i><span>已自动保存</span></div>
+      <button class="icon-btn" id="undoBtn" type="button" aria-label="撤销" title="撤销" disabled><i data-lucide="undo-2"></i><span class="icon-fallback">↶</span></button>
+      <button class="icon-btn" id="redoBtn" type="button" aria-label="重做" title="重做" disabled><i data-lucide="redo-2"></i><span class="icon-fallback">↷</span></button>
+      <button class="btn" id="exportBtn" type="button" title="导出当前规划 JSON"><i data-lucide="download"></i><span class="icon-fallback">↓</span><span class="btn-text">导出规划</span></button>
+      <button class="icon-btn" id="resetBtn" type="button" aria-label="恢复基线" title="恢复基线"><i data-lucide="rotate-ccw"></i><span class="icon-fallback">↺</span></button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="scope-banner" aria-label="项目范围门禁">
+      <div class="banner-main">
+        <i class="banner-icon" data-lucide="shield-alert"></i>
+        <div class="banner-copy"><strong>9/30 范围门禁：</strong>P0 剩余 15 项全部收口；P1 仅保留核心交易链路，P2 与非关键 P1 移出本期。</div>
+      </div>
+      <div class="scope-stats">
+        <div class="scope-stat p0">P0 当前口径<strong>123 / 138</strong></div>
+        <div class="scope-stat">P1 当前口径<strong>169 / 439</strong></div>
+      </div>
+    </section>
+
+    <section class="planner" aria-labelledby="plannerTitle">
+      <div class="planner-head">
+        <div>
+          <div class="planner-title" id="plannerTitle">具体迭代主题与交付窗口</div>
+          <div class="range-meta"><span>计划范围</span><strong>2026/08/07 - 2026/09/30</strong><span id="iterationCount">43 个主题</span><span id="developmentCount">开发中 13 个主题 · 39 项需求</span></div>
+        </div>
+        <div class="legend" aria-label="排期类型">
+          <span class="legend-item"><span class="legend-line"></span>已有计划点归并</span>
+          <span class="legend-item"><span class="legend-line funds"></span>资金链路</span>
+          <span class="legend-item"><span class="legend-line reports"></span>数据报表</span>
+          <span class="legend-item"><span class="legend-line master-data"></span>基础数据</span>
+          <span class="legend-item"><span class="legend-line order-flow"></span>下单流程</span>
+          <span class="legend-item"><span class="legend-line fulfillment"></span>履约协同</span>
+          <span class="legend-item"><span class="legend-line contract-service"></span>合同售后</span>
+          <span class="legend-item"><span class="legend-line settlement-invoice"></span>结算开票</span>
+          <span class="legend-item"><span class="legend-line plan"></span>建议排期</span>
+          <span class="legend-item"><span class="legend-line gate"></span>UAT / 上线保障窗口</span>
+        </div>
+      </div>
+
+      <div class="gantt-scroll" id="ganttScroll">
+        <div class="gantt-board">
+          <div class="board-header">
+            <div class="left-header"><span>迭代主题</span><span class="left-header-meta">优先级顺序</span></div>
+            <div class="timeline-header">
+              <div class="month-grid" id="monthGrid"></div>
+              <div class="week-grid" id="weekGrid"></div>
+            </div>
+          </div>
+          <div class="gantt-rows" id="ganttRows"></div>
+        </div>
+      </div>
+
+      <div class="selection-bar" aria-live="polite">
+        <div class="selection-main">
+          <span class="selection-code" id="selectedCode">I1</span>
+          <span class="selection-title" id="selectedTitle">订单标签</span>
+          <span class="development-badge" id="selectedDevelopment">开发中 2 项</span>
+          <span class="selection-topics" id="selectedTopics">在研计划点收口 · 已有计划点归并</span>
+        </div>
+        <div class="selection-dates">
+          <label class="date-field">开始<input class="date-input" id="selectedStart" type="date" min="2026-08-07" max="2026-09-30"></label>
+          <label class="date-field">结束<input class="date-input" id="selectedEnd" type="date" min="2026-08-07" max="2026-09-30"></label>
+          <span class="duration" id="selectedDuration">7 天</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script>
+    (() => {
+      const DAY = 24 * 60 * 60 * 1000;
+      // Keep this key versionless: feature releases must not replace user-edited order or dates.
+      const STORAGE_KEY = 'yiduoyun-iteration-plan-user-state';
+      const LEGACY_STORAGE_KEYS = ['yiduoyun-iteration-plan-v2'];
+      const CATEGORY_ORDER_MIGRATION_KEY = 'yiduoyun-iteration-plan-category-order-v2';
+      const CATEGORY_ORDER = ['committed', 'funds', 'reports', 'master-data', 'order-flow', 'fulfillment', 'contract-service', 'settlement-invoice', 'gate', 'plan'];
+      const RANGE_START = '2026-08-07';
+      const RANGE_END = '2026-09-30';
+      const DEVELOPMENT_SNAPSHOT = '2026-08-06 15:05';
+
+      // Existing IDs are the persistence contract. Never rename them in feature-only changes.
+      const BASELINE_ITEMS = [
+        { id: 'order-tags', code: 'I0', title: '订单标签', topics: '在研计划点收口 · 已有计划点归并', start: '2026-08-07', end: '2026-08-13', type: 'reports', developmentCount: 2 },
+        { id: 'customer-pickup', code: 'I0-I1', title: '客户提货流程优化', topics: '在研计划点收口 / 合同与提货闭环 · 已有计划点归并', start: '2026-08-07', end: '2026-08-20', type: 'fulfillment', developmentCount: 4 },
+        { id: 'invoice-flow', code: 'I0-I2', title: '开票流程优化', topics: '在研 / 售后与结算闭环 · 已有计划点归并', start: '2026-08-07', end: '2026-08-27', type: 'settlement-invoice', developmentCount: 4 },
+        { id: 'ownership', code: 'I0', title: '货权管理优化', topics: '在研计划点收口 · 已有计划点归并', start: '2026-08-07', end: '2026-08-13', type: 'fulfillment', developmentCount: 2 },
+        { id: 'contract-management', code: 'I1', title: '合同管理线上化', topics: '合同与提货闭环 · 已有计划点归并', start: '2026-08-14', end: '2026-08-20', type: 'contract-service', developmentCount: 1 },
+        { id: 'contract-template', code: 'I1', title: '合同模板优化', topics: '合同与提货闭环 · 建议排期', start: '2026-08-14', end: '2026-08-20', type: 'contract-service' },
+        { id: 'fee-order', code: 'I1', title: '费用订单流程优化', topics: '合同与提货闭环 · 已有计划点归并', start: '2026-08-14', end: '2026-08-20', type: 'committed' },
+        { id: 'after-sales', code: 'I2', title: '售后线上流程优化', topics: '售后与结算闭环 · 已有计划点归并', start: '2026-08-21', end: '2026-08-28', type: 'contract-service', developmentCount: 14 },
+        { id: 'b2-settlement', code: 'I2', title: 'B2结算流程优化', topics: '售后与结算闭环 · 已有计划点归并', start: '2026-08-21', end: '2026-08-27', type: 'settlement-invoice', developmentCount: 2 },
+        { id: 'customer-order', code: 'I3', title: '客户下单流程优化', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'order-flow' },
+        { id: 'order-editing', code: 'I3', title: '订单编辑功能整体优化', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'order-flow' },
+        { id: 'order-check', code: 'I3', title: '订单检查', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'plan', developmentCount: 5 },
+        { id: 'sales-order-log', code: 'I3', title: '销售订单操作日志', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'plan' },
+        { id: 'system-performance', code: 'I3', title: '系统性能优化', topics: '订单治理与稳定性 · 已有计划点归并', start: '2026-08-29', end: '2026-09-11', type: 'plan', developmentCount: 1 },
+        { id: 'sourcing-order', code: 'I3', title: '找货下单', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'order-flow' },
+        { id: 'sales-order-list', code: 'I3', title: '销售订单列表优化', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'plan' },
+        { id: 'purchase-order-query', code: 'I3', title: '采购订单列表查询', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'plan' },
+        { id: 'purchase-order-detail', code: 'I3', title: '采购订单详情优化', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'plan' },
+        { id: 'purchase-order-list', code: 'I3', title: '采购订单列表优化', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'plan' },
+        { id: 'project-order', code: 'I3', title: '项目订单流程线上化', topics: '订单治理与稳定性 · 建议排期', start: '2026-08-29', end: '2026-09-11', type: 'order-flow' },
+        { id: 'payment-flow', code: 'I4', title: '收付款线上流程优化', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'funds', developmentCount: 1 },
+        { id: 'auto-payment', code: 'I4', title: '自动支款流程优化', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'funds' },
+        { id: 'credit-sales', code: 'I4', title: '赊销流程优化', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'funds' },
+        { id: 'integrated-logistics', code: 'I4', title: '一体化物流流程优化', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'fulfillment' },
+        { id: 'consignment', code: 'I4', title: '转寄售流程线上化', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'order-flow' },
+        { id: 'sensitive-procurement', code: 'I4', title: '敏采流程线上化', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'order-flow' },
+        { id: 'merchant-department', code: 'I4', title: '客商二级部门线上化', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'contract-service' },
+        { id: 'b1-settlement', code: 'I4', title: 'B1结算流程优化', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'settlement-invoice', developmentCount: 1 },
+        { id: 'integrated-processing', code: 'I4', title: '一体化加工流程优化', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'fulfillment' },
+        { id: 'overdue-pickup', code: 'I4', title: '超期未提管理', topics: '资金与外围链路 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'fulfillment' },
+        { id: 'warehouse-data', code: 'I5', title: '仓库基础数据', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'master-data', developmentCount: 1 },
+        { id: 'customer-data', code: 'I5', title: '客户基础信息', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'master-data' },
+        { id: 'product-data', code: 'I5', title: '商品基础数据', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'master-data' },
+        { id: 'employee-data', code: 'I5', title: '员工基础数据', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'master-data' },
+        { id: 'supplier-data', code: 'I5', title: '供应商基础数据', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'master-data' },
+        { id: 'hr-report', code: 'I5', title: 'HR相关数据报表', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'reports' },
+        { id: 'other-report', code: 'I5', title: '其他数据报表', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'reports' },
+        { id: 'middle-office-report', code: 'I5', title: '中台相关数据报表', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'reports' },
+        { id: 'logistics-report', code: 'I5', title: '物流相关数据报表', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'reports' },
+        { id: 'finance-report', code: 'I5', title: '财务相关数据报表', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'reports', developmentCount: 1 },
+        { id: 'supply-report', code: 'I5', title: '供管相关数据报表', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'reports' },
+        { id: 'spot-report', code: 'I5', title: '现货相关数据报表', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'reports' },
+        { id: 'risk-report', code: 'I5', title: '风控相关数据报表', topics: '数据与报表收口 · 建议排期', start: '2026-09-12', end: '2026-09-20', type: 'reports' }
+      ];
+
+      const rangeStartDate = parseDate(RANGE_START);
+      const rangeEndDate = parseDate(RANGE_END);
+      const totalDays = diffDays(rangeStartDate, rangeEndDate) + 1;
+      let items = applyCategoryOrderMigration(loadItems());
+      let selectedId = items[0].id;
+      let draggedId = null;
+      let dropCommitted = false;
+      let activeAdjustment = null;
+      let history = [snapshot()];
+      let historyIndex = 0;
+
+      const ganttRows = document.getElementById('ganttRows');
+      const selectedStart = document.getElementById('selectedStart');
+      const selectedEnd = document.getElementById('selectedEnd');
+      const undoBtn = document.getElementById('undoBtn');
+      const redoBtn = document.getElementById('redoBtn');
+
+      function parseDate(value) {
+        const [year, month, day] = String(value).split('-').map(Number);
+        return new Date(Date.UTC(year, month - 1, day));
+      }
+
+      function formatDate(date) {
+        return [date.getUTCFullYear(), String(date.getUTCMonth() + 1).padStart(2, '0'), String(date.getUTCDate()).padStart(2, '0')].join('-');
+      }
+
+      function shortDate(value) {
+        const date = parseDate(value);
+        return `${date.getUTCMonth() + 1}/${date.getUTCDate()}`;
+      }
+
+      function addDays(date, amount) {
+        return new Date(date.getTime() + amount * DAY);
+      }
+
+      function diffDays(start, end) {
+        return Math.round((end.getTime() - start.getTime()) / DAY);
+      }
+
+      function clampDate(date, min, max) {
+        return new Date(Math.min(max.getTime(), Math.max(min.getTime(), date.getTime())));
+      }
+
+      function cloneBaseline() {
+        return groupByCategory(BASELINE_ITEMS).map((item) => ({ ...item }));
+      }
+
+      function groupByCategory(source) {
+        const categoryRank = Object.fromEntries(CATEGORY_ORDER.map((type, index) => [type, index]));
+        return source
+          .map((item, index) => ({ item, index }))
+          .sort((a, b) => (categoryRank[a.item.type] ?? CATEGORY_ORDER.length) - (categoryRank[b.item.type] ?? CATEGORY_ORDER.length) || a.index - b.index)
+          .map(({ item }) => item);
+      }
+
+      function applyCategoryOrderMigration(source) {
+        try {
+          if (localStorage.getItem(CATEGORY_ORDER_MIGRATION_KEY) === 'done') return source;
+          const grouped = groupByCategory(source);
+          localStorage.setItem(CATEGORY_ORDER_MIGRATION_KEY, 'done');
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(grouped.map(({ id, start, end }) => ({ id, start, end }))));
+          return grouped;
+        } catch (error) {
+          console.warn('无法记录分类排序迁移，将仅在当前页面应用。', error);
+          return groupByCategory(source);
+        }
+      }
+
+      function storedItems(value) {
+        if (Array.isArray(value)) return value;
+        if (value && Array.isArray(value.items)) return value.items;
+        return null;
+      }
+
+      function hasValidRange(item) {
+        if (!item || typeof item.id !== 'string') return false;
+        const start = parseDate(item.start);
+        const end = parseDate(item.end);
+        return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) &&
+          start >= rangeStartDate && end <= rangeEndDate && start <= end;
+      }
+
+      function mergeStoredItems(value) {
+        const savedItems = storedItems(value);
+        if (!savedItems) return null;
+        const baselineById = Object.fromEntries(BASELINE_ITEMS.map((item) => [item.id, item]));
+        const usedIds = new Set();
+        const merged = [];
+
+        savedItems.forEach((savedItem) => {
+          const baseline = baselineById[savedItem?.id];
+          if (!baseline || usedIds.has(savedItem.id) || !hasValidRange(savedItem)) return;
+          merged.push({ ...baseline, start: savedItem.start, end: savedItem.end });
+          usedIds.add(savedItem.id);
+        });
+
+        BASELINE_ITEMS.forEach((baseline) => {
+          if (!usedIds.has(baseline.id)) merged.push({ ...baseline });
+        });
+        return merged.length ? merged : null;
+      }
+
+      function loadItems() {
+        for (const key of [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]) {
+          try {
+            const raw = localStorage.getItem(key);
+            if (!raw) continue;
+            const merged = mergeStoredItems(JSON.parse(raw));
+            if (merged) return merged;
+          } catch (error) {
+            console.warn(`无法读取本地规划 ${key}，继续尝试其他版本。`, error);
+          }
+        }
+        return cloneBaseline();
+      }
+
+      function snapshot() {
+        return JSON.stringify(items.map(({ id, start, end }) => ({ id, start, end })));
+      }
+
+      function saveItems() {
+        const saveState = document.getElementById('saveState');
+        try {
+          localStorage.setItem(STORAGE_KEY, snapshot());
+          saveState.querySelector('span').textContent = '已自动保存';
+        } catch (error) {
+          saveState.querySelector('span').textContent = '仅当前页面';
+          console.warn('当前浏览器不支持本地保存。', error);
+        }
+      }
+
+      function pushHistory() {
+        const next = snapshot();
+        if (history[historyIndex] === next) return;
+        history = history.slice(0, historyIndex + 1);
+        history.push(next);
+        if (history.length > 50) history.shift();
+        historyIndex = history.length - 1;
+        saveItems();
+        updateHistoryButtons();
+      }
+
+      function applySnapshot(serialized) {
+        const saved = JSON.parse(serialized);
+        items = mergeStoredItems(saved) || cloneBaseline();
+        if (!items.some((item) => item.id === selectedId)) selectedId = items[0].id;
+        saveItems();
+        renderRows();
+      }
+
+      function updateHistoryButtons() {
+        undoBtn.disabled = historyIndex <= 0;
+        redoBtn.disabled = historyIndex >= history.length - 1;
+      }
+
+      function refreshIcons() {
+        if (window.lucide) window.lucide.createIcons({ attrs: { 'stroke-width': 1.8 } });
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
+      function typeClass(type) {
+        return type === 'committed' ? '' : type;
+      }
+
+      function durationDays(item) {
+        return diffDays(parseDate(item.start), parseDate(item.end)) + 1;
+      }
+
+      function renderHeader() {
+        const monthGrid = document.getElementById('monthGrid');
+        const weekGrid = document.getElementById('weekGrid');
+        const monthSegments = [];
+        let segmentStart = 0;
+        let monthKey = '';
+
+        for (let index = 0; index < totalDays; index += 1) {
+          const date = addDays(rangeStartDate, index);
+          const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+          if (key !== monthKey) {
+            if (monthKey) monthSegments.push({ start: segmentStart, span: index - segmentStart, date: addDays(rangeStartDate, segmentStart) });
+            monthKey = key;
+            segmentStart = index;
+          }
+        }
+        monthSegments.push({ start: segmentStart, span: totalDays - segmentStart, date: addDays(rangeStartDate, segmentStart) });
+        monthGrid.innerHTML = monthSegments.map((segment) =>
+          `<div class="month-segment" style="grid-column:${segment.start + 1} / span ${segment.span}">${segment.date.getUTCFullYear()} 年 ${segment.date.getUTCMonth() + 1} 月</div>`
+        ).join('');
+
+        const weeks = [];
+        for (let start = 0; start < totalDays; start += 7) {
+          weeks.push({ start, span: Math.min(7, totalDays - start), date: addDays(rangeStartDate, start) });
+        }
+        weekGrid.innerHTML = weeks.map((segment) =>
+          `<div class="week-segment" style="grid-column:${segment.start + 1} / span ${segment.span}">${segment.date.getUTCMonth() + 1}/${segment.date.getUTCDate()}</div>`
+        ).join('');
+      }
+
+      function renderDayGrid() {
+        const cells = [];
+        for (let index = 0; index < totalDays; index += 1) {
+          const date = addDays(rangeStartDate, index);
+          const day = date.getUTCDay();
+          const classes = ['day-cell'];
+          if (day === 0 || day === 6) classes.push('weekend');
+          if ((index + 1) % 7 === 0) classes.push('week-boundary');
+          cells.push(`<span class="${classes.join(' ')}"></span>`);
+        }
+        return cells.join('');
+      }
+
+      function renderRows() {
+        const dayGrid = renderDayGrid();
+        ganttRows.innerHTML = items.map((item, index) => {
+          const left = diffDays(rangeStartDate, parseDate(item.start)) / totalDays * 100;
+          const width = durationDays(item) / totalDays * 100;
+          const classes = typeClass(item.type);
+          const isSelected = item.id === selectedId;
+          const rangeLabel = `${shortDate(item.start)}-${shortDate(item.end)}`;
+          const developmentBadge = item.developmentCount
+            ? `<span class="development-badge" title="研发状态快照：${DEVELOPMENT_SNAPSHOT}">开发中 ${item.developmentCount} 项</span>`
+            : '';
+          return `
+            <div class="gantt-row${isSelected ? ' selected' : ''}" data-id="${item.id}">
+              <div class="iteration-cell">
+                <button class="drag-handle" type="button" draggable="true" data-drag-id="${item.id}" aria-label="调整${escapeHtml(item.title)}顺序" title="拖动调整顺序"><i data-lucide="grip-vertical"></i></button>
+                <span class="iteration-code ${classes}">I${index + 1}</span>
+                <div class="iteration-copy">
+                  <div class="iteration-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</div>
+                  <div class="iteration-topics" title="${escapeHtml(item.topics)}">${developmentBadge}<span class="iteration-topics-text">${escapeHtml(item.topics)}</span></div>
+                </div>
+              </div>
+              <div class="timeline-track" data-track-id="${item.id}">
+                <div class="day-grid" aria-hidden="true">${dayGrid}</div>
+                <div class="release-window" style="left:${45 / totalDays * 100}%;width:${5 / totalDays * 100}%" aria-hidden="true"></div>
+                <div class="release-window launch" style="left:${50 / totalDays * 100}%;width:${5 / totalDays * 100}%" aria-hidden="true"></div>
+                <div class="goal-line" aria-hidden="true"></div>
+                <div class="task-bar ${classes}${isSelected ? ' active' : ''}" data-bar-id="${item.id}" style="left:${left}%;width:${width}%" role="group" aria-label="${escapeHtml(item.title)}，${rangeLabel}，共${durationDays(item)}天" title="${rangeLabel} · ${durationDays(item)} 天">
+                  <button class="resize-handle start" type="button" data-resize="start" aria-label="调整${escapeHtml(item.title)}开始日期" title="调整开始日期"></button>
+                  <span class="bar-label">${rangeLabel}</span>
+                  <button class="resize-handle end" type="button" data-resize="end" aria-label="调整${escapeHtml(item.title)}结束日期" title="调整结束日期"></button>
+                </div>
+              </div>
+            </div>`;
+        }).join('');
+        document.getElementById('iterationCount').textContent = `${items.length} 个主题`;
+        const developmentItems = items.filter((item) => item.developmentCount);
+        const developmentRequirements = developmentItems.reduce((total, item) => total + item.developmentCount, 0);
+        document.getElementById('developmentCount').textContent = `开发中 ${developmentItems.length} 个主题 · ${developmentRequirements} 项需求`;
+        updateSelection();
+        refreshIcons();
+      }
+
+      function updateSelection() {
+        const item = items.find((entry) => entry.id === selectedId) || items[0];
+        if (!item) return;
+        document.getElementById('selectedCode').textContent = `I${items.indexOf(item) + 1}`;
+        document.getElementById('selectedTitle').textContent = item.title;
+        document.getElementById('selectedTopics').textContent = item.topics;
+        const selectedDevelopment = document.getElementById('selectedDevelopment');
+        selectedDevelopment.hidden = !item.developmentCount;
+        selectedDevelopment.textContent = item.developmentCount ? `开发中 ${item.developmentCount} 项` : '';
+        selectedDevelopment.title = item.developmentCount ? `研发状态快照：${DEVELOPMENT_SNAPSHOT}` : '';
+        selectedStart.value = item.start;
+        selectedEnd.value = item.end;
+        selectedStart.max = item.end;
+        selectedEnd.min = item.start;
+        document.getElementById('selectedDuration').textContent = `${durationDays(item)} 天`;
+      }
+
+      function selectItem(id) {
+        if (!items.some((item) => item.id === id)) return;
+        selectedId = id;
+        renderRows();
+      }
+
+      function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.getElementById('toastWrap').appendChild(toast);
+        window.setTimeout(() => toast.remove(), 2200);
+      }
+
+      function reorderByKeyboard(id, direction) {
+        const index = items.findIndex((item) => item.id === id);
+        const nextIndex = index + direction;
+        if (index < 0 || nextIndex < 0 || nextIndex >= items.length) return;
+        const nextItems = [...items];
+        [nextItems[index], nextItems[nextIndex]] = [nextItems[nextIndex], nextItems[index]];
+        items = nextItems;
+        selectedId = id;
+        pushHistory();
+        renderRows();
+        window.requestAnimationFrame(() => ganttRows.querySelector(`[data-drag-id="${id}"]`)?.focus());
+      }
+
+      function beginAdjustment(event, itemId, mode) {
+        if (event.button !== 0) return;
+        const item = items.find((entry) => entry.id === itemId);
+        const track = event.target.closest('.timeline-track');
+        if (!item || !track) return;
+        event.preventDefault();
+        selectedId = itemId;
+        activeAdjustment = {
+          itemId,
+          mode,
+          startX: event.clientX,
+          trackWidth: track.getBoundingClientRect().width,
+          originalStart: parseDate(item.start),
+          originalEnd: parseDate(item.end),
+          lastDelta: 0,
+          changed: false
+        };
+        document.body.classList.add('is-adjusting');
+        event.target.closest('.task-bar')?.classList.add('moving');
+        renderRows();
+      }
+
+      function applyAdjustment(deltaDays) {
+        if (!activeAdjustment) return;
+        const item = items.find((entry) => entry.id === activeAdjustment.itemId);
+        if (!item) return;
+        let start = new Date(activeAdjustment.originalStart);
+        let end = new Date(activeAdjustment.originalEnd);
+
+        if (activeAdjustment.mode === 'move') {
+          const duration = diffDays(start, end);
+          start = addDays(start, deltaDays);
+          end = addDays(end, deltaDays);
+          if (start < rangeStartDate) {
+            start = new Date(rangeStartDate);
+            end = addDays(start, duration);
+          }
+          if (end > rangeEndDate) {
+            end = new Date(rangeEndDate);
+            start = addDays(end, -duration);
+          }
+        } else if (activeAdjustment.mode === 'start') {
+          start = clampDate(addDays(start, deltaDays), rangeStartDate, end);
+        } else {
+          end = clampDate(addDays(end, deltaDays), start, rangeEndDate);
+        }
+
+        item.start = formatDate(start);
+        item.end = formatDate(end);
+        activeAdjustment.changed = item.start !== formatDate(activeAdjustment.originalStart) || item.end !== formatDate(activeAdjustment.originalEnd);
+        renderRows();
+      }
+
+      function finishAdjustment() {
+        if (!activeAdjustment) return;
+        const changed = activeAdjustment.changed;
+        activeAdjustment = null;
+        document.body.classList.remove('is-adjusting');
+        if (changed) {
+          pushHistory();
+          showToast('主题时间已更新');
+        }
+        renderRows();
+      }
+
+      function nudgeDate(id, edge, amount) {
+        const item = items.find((entry) => entry.id === id);
+        if (!item) return;
+        const start = parseDate(item.start);
+        const end = parseDate(item.end);
+        if (edge === 'start') item.start = formatDate(clampDate(addDays(start, amount), rangeStartDate, end));
+        if (edge === 'end') item.end = formatDate(clampDate(addDays(end, amount), start, rangeEndDate));
+        selectedId = id;
+        pushHistory();
+        renderRows();
+      }
+
+      ganttRows.addEventListener('click', (event) => {
+        const row = event.target.closest('.gantt-row');
+        if (row && !event.target.closest('.drag-handle')) selectItem(row.dataset.id);
+      });
+
+      ganttRows.addEventListener('keydown', (event) => {
+        const dragHandle = event.target.closest('.drag-handle');
+        if (dragHandle && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+          event.preventDefault();
+          reorderByKeyboard(dragHandle.dataset.dragId, event.key === 'ArrowUp' ? -1 : 1);
+          return;
+        }
+        const resizeHandle = event.target.closest('.resize-handle');
+        if (resizeHandle && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+          event.preventDefault();
+          const bar = resizeHandle.closest('.task-bar');
+          nudgeDate(bar.dataset.barId, resizeHandle.dataset.resize, event.key === 'ArrowLeft' ? -1 : 1);
+        }
+      });
+
+      ganttRows.addEventListener('dragstart', (event) => {
+        const handle = event.target.closest('.drag-handle');
+        if (!handle) return;
+        draggedId = handle.dataset.dragId;
+        dropCommitted = false;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', draggedId);
+        window.requestAnimationFrame(() => ganttRows.querySelector(`[data-id="${draggedId}"]`)?.classList.add('dragging'));
+      });
+
+      ganttRows.addEventListener('dragover', (event) => {
+        if (!draggedId) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        const rows = [...ganttRows.querySelectorAll('.gantt-row:not(.dragging)')];
+        rows.forEach((row) => row.classList.remove('drop-before'));
+        const target = rows.find((row) => event.clientY < row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2);
+        const draggedRow = ganttRows.querySelector(`[data-id="${draggedId}"]`);
+        if (!draggedRow) return;
+        if (target) {
+          target.classList.add('drop-before');
+          ganttRows.insertBefore(draggedRow, target);
+        } else {
+          ganttRows.appendChild(draggedRow);
+        }
+      });
+
+      ganttRows.addEventListener('drop', (event) => {
+        if (!draggedId) return;
+        event.preventDefault();
+        const order = [...ganttRows.querySelectorAll('.gantt-row')].map((row) => row.dataset.id);
+        const itemById = Object.fromEntries(items.map((item) => [item.id, item]));
+        items = order.map((id) => itemById[id]);
+        selectedId = draggedId;
+        dropCommitted = true;
+        pushHistory();
+        showToast('主题顺序已更新');
+      });
+
+      ganttRows.addEventListener('dragend', () => {
+        ganttRows.querySelectorAll('.gantt-row').forEach((row) => row.classList.remove('dragging', 'drop-before'));
+        draggedId = null;
+        renderRows();
+        dropCommitted = false;
+      });
+
+      ganttRows.addEventListener('pointerdown', (event) => {
+        const bar = event.target.closest('.task-bar');
+        if (!bar || event.target.closest('.drag-handle')) return;
+        const resize = event.target.closest('.resize-handle');
+        beginAdjustment(event, bar.dataset.barId, resize ? resize.dataset.resize : 'move');
+      });
+
+      document.addEventListener('pointermove', (event) => {
+        if (!activeAdjustment) return;
+        event.preventDefault();
+        const pixelsPerDay = activeAdjustment.trackWidth / totalDays;
+        const deltaDays = Math.round((event.clientX - activeAdjustment.startX) / pixelsPerDay);
+        if (deltaDays === activeAdjustment.lastDelta) return;
+        activeAdjustment.lastDelta = deltaDays;
+        applyAdjustment(deltaDays);
+      }, { passive: false });
+
+      document.addEventListener('pointerup', finishAdjustment);
+      document.addEventListener('pointercancel', finishAdjustment);
+
+      function updateSelectedDate(edge, value) {
+        const item = items.find((entry) => entry.id === selectedId);
+        if (!item) return;
+        if (!value) {
+          updateSelection();
+          return;
+        }
+        const next = parseDate(value);
+        const other = parseDate(edge === 'start' ? item.end : item.start);
+        if (next < rangeStartDate || next > rangeEndDate || (edge === 'start' && next > other) || (edge === 'end' && next < other)) {
+          updateSelection();
+          showToast('日期超出当前主题范围', 'warn');
+          return;
+        }
+        item[edge] = value;
+        pushHistory();
+        renderRows();
+        showToast('主题时间已更新');
+      }
+
+      selectedStart.addEventListener('change', () => updateSelectedDate('start', selectedStart.value));
+      selectedEnd.addEventListener('change', () => updateSelectedDate('end', selectedEnd.value));
+
+      undoBtn.addEventListener('click', () => {
+        if (historyIndex <= 0) return;
+        historyIndex -= 1;
+        applySnapshot(history[historyIndex]);
+        updateHistoryButtons();
+        showToast('已撤销上一步调整');
+      });
+
+      redoBtn.addEventListener('click', () => {
+        if (historyIndex >= history.length - 1) return;
+        historyIndex += 1;
+        applySnapshot(history[historyIndex]);
+        updateHistoryButtons();
+        showToast('已重做上一步调整');
+      });
+
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        if (!window.confirm('确认恢复最初的主题顺序和时间范围？')) return;
+        items = cloneBaseline();
+        selectedId = items[0].id;
+        pushHistory();
+        renderRows();
+        showToast('已恢复规划基线');
+      });
+
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        const payload = {
+          title: '一朵云项目迭代规划',
+          targetDate: RANGE_END,
+          developmentSnapshot: DEVELOPMENT_SNAPSHOT,
+          exportedAt: new Date().toISOString(),
+          iterationThemes: items.map((item, index) => ({
+            id: item.id,
+            phase: `I${index + 1}`,
+            iterationTheme: item.title,
+            planningBasis: item.topics,
+            start: item.start,
+            end: item.end,
+            type: item.type,
+            developmentStatus: item.developmentCount ? '研发中' : '',
+            developmentRequirementCount: item.developmentCount || 0
+          }))
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '一朵云项目迭代规划.json';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showToast('规划文件已导出');
+      });
+
+      renderHeader();
+      renderRows();
+      saveItems();
+      updateHistoryButtons();
+      window.addEventListener('load', refreshIcons);
+    })();
+  </script>
+</body>
+</html>
