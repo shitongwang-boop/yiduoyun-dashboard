@@ -609,18 +609,6 @@
           <div class="planner-title" id="plannerTitle">具体迭代主题与交付窗口</div>
           <div class="range-meta"><span>计划范围</span><strong>2026/08/07 - 2026/09/30</strong><span id="iterationCount">43 个主题</span><span id="developmentCount">开发中 13 个主题 · 39 项需求</span></div>
         </div>
-        <div class="legend" aria-label="排期类型">
-          <span class="legend-item"><span class="legend-line"></span>已有计划点归并</span>
-          <span class="legend-item"><span class="legend-line funds"></span>资金链路</span>
-          <span class="legend-item"><span class="legend-line reports"></span>数据报表</span>
-          <span class="legend-item"><span class="legend-line master-data"></span>基础数据</span>
-          <span class="legend-item"><span class="legend-line order-flow"></span>下单流程</span>
-          <span class="legend-item"><span class="legend-line fulfillment"></span>履约协同</span>
-          <span class="legend-item"><span class="legend-line contract-service"></span>合同售后</span>
-          <span class="legend-item"><span class="legend-line settlement-invoice"></span>结算开票</span>
-          <span class="legend-item"><span class="legend-line plan"></span>建议排期</span>
-          <span class="legend-item"><span class="legend-line gate"></span>UAT / 上线保障窗口</span>
-        </div>
       </div>
 
       <div class="gantt-scroll" id="ganttScroll">
@@ -661,8 +649,8 @@
       // Keep this key versionless: feature releases must not replace user-edited order or dates.
       const STORAGE_KEY = 'yiduoyun-iteration-plan-user-state';
       const LEGACY_STORAGE_KEYS = ['yiduoyun-iteration-plan-v2'];
-      const CATEGORY_ORDER_MIGRATION_KEY = 'yiduoyun-iteration-plan-category-order-v2';
-      const CATEGORY_ORDER = ['committed', 'funds', 'reports', 'master-data', 'order-flow', 'fulfillment', 'contract-service', 'settlement-invoice', 'gate', 'plan'];
+      const CATEGORY_ORDER_MIGRATION_KEY = 'yiduoyun-iteration-plan-category-order-v3';
+      const CATEGORY_ORDER = ['committed', 'funds', 'reports', 'order-flow', 'fulfillment', 'contract-service', 'settlement-invoice', 'plan', 'gate', 'master-data'];
       const RANGE_START = '2026-08-07';
       const RANGE_END = '2026-09-30';
       const DEVELOPMENT_SNAPSHOT = '2026-08-06 15:05';
