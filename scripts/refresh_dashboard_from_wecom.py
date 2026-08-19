@@ -17,15 +17,26 @@ EXCLUDED_STATUSES = {"已取消"}
 
 
 def cli_call(action, params):
-    command = ["wecom-cli", "doc", action, json.dumps(params, ensure_ascii=False)]
+    # The current CLI exposes Smart Sheet reads under the dedicated
+    # `smartsheet` namespace instead of the former `doc` RPC bridge.
+    routes = {
+        "smartsheet_get_records": ["smartsheet", "records", "list"],
+        "smartsheet_get_fields": ["smartsheet", "fields", "list"],
+    }
+    try:
+        command = ["wecom-cli", *routes[action], "--json", json.dumps({
+            **params,
+            "type": "records" if action == "smartsheet_get_records" else "fields",
+            "docid": params.pop("url"),
+        }, ensure_ascii=False)]
+    except KeyError as error:
+        raise RuntimeError(f"不支持的企业微信智能表格操作：{action}") from error
     completed = subprocess.run(command, capture_output=True, text=True, check=False)
     if completed.returncode:
         raise RuntimeError(completed.stderr.strip() or f"wecom-cli exited with {completed.returncode}")
     try:
-        envelope = json.loads(completed.stdout)
-        content = envelope["result"]["content"]
-        payload = json.loads(next(item["text"] for item in content if item.get("type") == "text"))
-    except (KeyError, StopIteration, json.JSONDecodeError) as error:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as error:
         raise RuntimeError("无法解析企业微信智能表格响应") from error
     if payload.get("errcode") != 0:
         raise RuntimeError(f"企业微信智能表格读取失败：{payload.get('errmsg', 'unknown error')}")
@@ -76,7 +87,13 @@ def timestamp_text(value, with_time):
         timestamp = int(float(value)) / 1000
         value = datetime.fromtimestamp(timestamp, SHANGHAI)
     except (TypeError, ValueError, OSError):
-        return display_text(value) or "-"
+        text = display_text(value)
+        try:
+            value = datetime.fromisoformat(text.replace("Z", "+00:00"))
+            if value.tzinfo is not None:
+                value = value.astimezone(SHANGHAI)
+        except ValueError:
+            return text or "-"
     date_part = f"{value.year}年{value.month}月{value.day}日"
     return f"{date_part} {value.hour:02d}:{value.minute:02d}" if with_time else date_part
 
@@ -88,7 +105,7 @@ def date_value(value):
         return datetime.fromtimestamp(int(float(value)) / 1000, SHANGHAI).date()
     except (TypeError, ValueError, OSError):
         text = display_text(value)
-    for pattern in ("%Y-%m-%d", "%Y/%m/%d", "%Y年%m月%d日"):
+    for pattern in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y/%m/%d", "%Y年%m月%d日"):
         try:
             return datetime.strptime(text, pattern).date()
         except ValueError:
