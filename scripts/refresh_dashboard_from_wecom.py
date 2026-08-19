@@ -74,10 +74,18 @@ def display_text(value):
     return str(value).strip()
 
 
-def user_ids(value):
+def user_entries(value):
     if not isinstance(value, list):
         return []
-    return [str(item["user_id"]) for item in value if isinstance(item, dict) and item.get("user_id")]
+    return [
+        (str(item.get("userId") or item.get("user_id")), str(item.get("userName") or item.get("user_name") or item.get("name") or "").strip())
+        for item in value
+        if isinstance(item, dict) and (item.get("userId") or item.get("user_id"))
+    ]
+
+
+def user_ids(value):
+    return [user_id for user_id, _ in user_entries(value)]
 
 
 def timestamp_text(value, with_time):
@@ -149,6 +157,10 @@ def build_user_name_lookup(records, legacy):
     lookup = {}
     for record in records:
         values = record.get("values", {})
+        for field in ("产品主PD", "提出人"):
+            for user_id, user_name in user_entries(values.get(field)):
+                if user_name:
+                    lookup.setdefault(user_id, user_name)
         old = legacy.get(get_requirement_id(values))
         if not old:
             continue
@@ -161,9 +173,9 @@ def build_user_name_lookup(records, legacy):
 
 
 def user_display(value, fallback, lookup):
-    ids = user_ids(value)
-    if ids:
-        return "、".join(lookup.get(item, f"用户ID:{item}") for item in ids)
+    entries = user_entries(value)
+    if entries:
+        return "、".join(user_name or lookup.get(user_id, f"用户ID:{user_id}") for user_id, user_name in entries)
     return fallback or "未填写"
 
 
