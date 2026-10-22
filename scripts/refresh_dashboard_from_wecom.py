@@ -4,9 +4,11 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -24,14 +26,18 @@ def cli_call(action, params):
         "smartsheet_get_fields": ["smartsheet", "fields", "list"],
     }
     try:
-        command = ["wecom-cli", *routes[action], "--json", json.dumps({
-            **params,
-            "type": "records" if action == "smartsheet_get_records" else "fields",
-            "docid": params.pop("url"),
-        }, ensure_ascii=False)]
+        request = dict(params)
+        request["docid"] = request.pop("url")
+        command = [os.environ.get("WECOM_CLI", "wecom-cli"), *routes[action], "--json", json.dumps(request, ensure_ascii=False)]
     except KeyError as error:
         raise RuntimeError(f"不支持的企业微信智能表格操作：{action}") from error
-    completed = subprocess.run(command, capture_output=True, text=True, check=False)
+    for attempt in range(3):
+        completed = subprocess.run(command, capture_output=True, text=True, check=False, timeout=150)
+        if "850005" not in completed.stdout + completed.stderr:
+            break
+        if attempt == 2:
+            raise RuntimeError("企业微信调用频率受限，请稍后重试")
+        time.sleep((20, 60)[attempt])
     if completed.returncode:
         raise RuntimeError(completed.stderr.strip() or f"wecom-cli exited with {completed.returncode}")
     try:
@@ -46,18 +52,33 @@ def cli_call(action, params):
 def fetch_records(config):
     records = []
     cursor = None
-    while True:
-        params = {"url": config["source_url"], "sheet_id": config["sheet_id"], "limit": 1000}
+    seen_cursors, seen_records = set(), set()
+    expected_total = None
+    for _ in range(200):
+        params = {"url": config["source_url"], "sheet_title": config["sheet_name"], "limit": 100,
+                  "field_titles": ["自动编号", "需求名称", "当前状态", "优先级", "产品主PD", "提出部门", "提出人", "产品方案批次", "上线时间", "是否特别关注", "业务场景说明", "迭代主题"]}
         if cursor:
             params["cursor"] = cursor
         page = cli_call("smartsheet_get_records", params)
-        records.extend(page.get("records", []))
-        if not page.get("has_more"):
-            break
+        total = page.get("total")
+        if not isinstance(total, int) or total < 0 or (expected_total is not None and expected_total != total):
+            raise RuntimeError("业务需求收集表分页总数异常，原数据已保留")
+        expected_total = total
+        for record in page.get("records", []):
+            record_id = record.get("record_id")
+            if not record_id or record_id in seen_records:
+                raise RuntimeError("业务需求收集表分页记录重复或无效，原数据已保留")
+            seen_records.add(record_id)
+            records.append(record)
         cursor = page.get("next_cursor")
         if not cursor:
-            raise RuntimeError("企业微信智能表格返回了不完整的分页游标")
-    return records
+            if len(records) != total:
+                raise RuntimeError("业务需求收集表分页不完整，原数据已保留")
+            return records
+        if cursor in seen_cursors or not page.get("records"):
+            raise RuntimeError("业务需求收集表分页游标未前进，原数据已保留")
+        seen_cursors.add(cursor)
+    raise RuntimeError("业务需求收集表分页超过安全上限")
 
 
 def display_text(value):
@@ -212,7 +233,7 @@ def included(requirement, priority_prefixes):
 
 
 def build_payload(records, config, html_path):
-    fields = cli_call("smartsheet_get_fields", {"url": config["source_url"], "sheet_id": config["sheet_id"]})
+    fields = cli_call("smartsheet_get_fields", {"url": config["source_url"], "sheet_title": config["sheet_name"], "limit": 1000})
     field_names = {field["field_title"] for field in fields.get("fields", [])}
     missing = set(config.get("required_headers", [])) - field_names
     if missing:
@@ -240,7 +261,7 @@ def build_payload(records, config, html_path):
             "requirements": requirements,
         }
     source_digest = hashlib.sha256(json.dumps(records, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
-    timestamp = datetime.now(SHANGHAI).strftime("%Y-%m-%d %H:%M")
+    timestamp = datetime.now(SHANGHAI).strftime("%Y-%m-%d %H:%M:%S")
     return {
         "meta": {
             "sourceUrl": config["source_url"],
@@ -249,6 +270,7 @@ def build_payload(records, config, html_path):
             "sourceSha256": source_digest,
             "snapshotAt": timestamp,
             "generatedAt": timestamp,
+            "sourceRecordCount": len(records),
             "completionRule": "当前状态为暂缓、已上线、有代替方案、取消或已有功能已支持；或当前状态为研发中且预计上线时间不晚于数据快照当天",
             "priorityRule": f"数据包含优先级 {'、'.join(config['included_priority_prefixes'])}，且排除已取消需求",
             "specialAttentionRule": "是否特别关注为是",

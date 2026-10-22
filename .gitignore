@@ -1,1 +1,7 @@
 work/data/*.json
+.DS_Store
+__pycache__/
+.techhub-release.json
+.techhub-*.log
+*.sqlite3
+service-wecom/

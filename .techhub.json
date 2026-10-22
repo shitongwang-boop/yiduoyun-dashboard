@@ -1,0 +1,7 @@
+{
+  "port": 8080,
+  "strip_prefix": true,
+  "data_mount": "/data",
+  "health_path": "/api/health",
+  "description": "一朵云项目进度看板，支持每小时自动刷新和手动刷新业务需求数据"
+}

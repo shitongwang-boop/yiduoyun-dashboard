@@ -1,0 +1,6 @@
+work
+tests
+*.png
+*.enc
+.encryption_key
+service-wecom
